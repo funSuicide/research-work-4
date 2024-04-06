@@ -4,7 +4,7 @@
 #include "table4X256.hpp"
 #include "table2X65536.hpp"
 
-// Заменить на другую стуктуру или 8x8; //вместо broadcast +
+// Г‡Г Г¬ГҐГ­ГЁГІГј Г­Г  Г¤Г°ГіГЈГіГѕ Г±ГІГіГЄГІГіГ°Гі ГЁГ«ГЁ 8x8; //ГўГ¬ГҐГ±ГІГ® broadcast +
 halfVectorMagma roundKeys[8][8];
 
 void expandKeys(const key& key);
@@ -24,14 +24,14 @@ void expandKeys(const key& key)
 	}
 }
 
-__m256i gTransformationAVX(float const* roundKeyAddr, const __m256i data)
+__m256i gTransformationAVX(float const* roundKeyAddr, const __m256i data)   // change float* to key*
 {	
 	const int blockMask = 0xB1;
 	const int loMask = 0x2;
 	const int hiMask = 0x1;
 	const int blendMask = 0x5555; //5555
 
-	__m256i vectorKey = _mm256_castps_si256(_mm256_load_ps(roundKeyAddr));
+	__m256i vectorKey = _mm256_castps_si256(_mm256_load_ps(roundKeyAddr)); // Dont do this. When tou use "load float" the CPU may assume that subsequent operations will be also with floats and assign the operation to an FPU execution port. Then when you start integer ops, the CPU have to transfer execution to an Integer execution port, which has some delay
 	__m256i result = _mm256_add_epi32(vectorKey, data);
 
 	__m128i lo = _mm256_extracti128_si256(result, loMask);
@@ -53,9 +53,9 @@ __m256i gTransformationAVX(float const* roundKeyAddr, const __m256i data)
 
 	__m128i shift;
 	shift.m128i_u64[0] = 11;
-	__m256i resultShift = _mm256_sll_epi32(result, shift);
+	__m256i resultShift = _mm256_sll_epi32(result, shift); // _mm256_slli_epi32
 	shift.m128i_u64[0] = 21;
-	__m256i resultShift2 = _mm256_srl_epi32(result, shift);
+	__m256i resultShift2 = _mm256_srl_epi32(result, shift); // _mm256_srli_epi32
 	result = _mm256_xor_si256(resultShift, resultShift2);
 	return result;
 }
