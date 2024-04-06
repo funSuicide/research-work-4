@@ -26,8 +26,8 @@ void test2(uint8_t * dest)
 	}
 }
 
-std::string hexStr2(uint8_t* data, int len)
-{
+std::string hexStr2(uint8_t* data, int len) //1. won't work - unfortunately, if the number is less than 16, then the preceding 0 will be lost (e.g. instead of '0A' only 'A' will be written)
+{                                           //2. better use std::span<const uint8_t>
 	std::stringstream ss;
 	ss << std::hex;
 	for (int i(0);i < len;++i)
