@@ -26,6 +26,7 @@ void expandKeys(const key& key)
 
 __m256i gTransformationAVX(float const* roundKeyAddr, const __m256i data)
 {	
+	const int blockMask = 0xB1;
 	const int loMask = 0x2;
 	const int hiMask = 0x1;
 	const int blendMask = 0x5555; //5555
@@ -45,7 +46,8 @@ __m256i gTransformationAVX(float const* roundKeyAddr, const __m256i data)
 	__m256i resultLo = _mm256_castps_si256(_mm256_i32gather_ps((float const*)sTable2x65536, expandedLo, 1));
 	__m256i resultHi = _mm256_castps_si256(_mm256_i32gather_ps((float const*)sTable2x65536, expandedHi, 1));
 	
-	result = _mm256_blend_epi16(resultHi, resultLo, blendMask);
+	resultHi = _mm256_shuffle_epi32(resultHi, blockMask);
+	result = _mm256_blend_epi32(resultHi, resultLo, blendMask);
 	//result = _mm256_set_m128i(resultHi, resultLo);
 	//result = _mm256_setr_epi16(result2.m256i_i16[0], result1.m256i_i16[0], result2.m256i_i16[2], result1.m256i_i16[2], result2.m256i_i16[4], result1.m256i_i16[4], result2.m256i_i16[6], result1.m256i_i16[6], result2.m256i_i16[8], result1.m256i_i16[8], result2.m256i_i16[10], result1.m256i_i16[10], result2.m256i_i16[12], result1.m256i_i16[12], result2.m256i_i16[14], result1.m256i_i16[14]);
 
