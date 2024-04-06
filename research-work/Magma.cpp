@@ -62,8 +62,8 @@ inline void transformationGaVX(__m256i& leftHalfs, __m256i& rightHalfs, float co
 {
 	__m256i gResult = gTransformationAVX((float const*)roundKeyAddr, leftHalfs);
 	__m256i tmp = _mm256_xor_si256(gResult, rightHalfs);
-	leftHalfs = rightHalfs;
-	rightHalfs = tmp;
+	rightHalfs = leftHalfs;
+	leftHalfs = tmp;
 }
 
 inline void encryptEightBlocks(__m256i& leftHalfs, __m256i& rightHalfs) //inline +
@@ -78,8 +78,8 @@ inline void encryptEightBlocks(__m256i& leftHalfs, __m256i& rightHalfs) //inline
 	}
 	__m256i gResults = gTransformationAVX((float const*)roundKeys[0], leftHalfs);
 	__m256i tmp = _mm256_xor_si256(gResults, rightHalfs);
-	leftHalfs = rightHalfs;
-	rightHalfs = tmp;
+	rightHalfs = leftHalfs;
+	leftHalfs = tmp;
 }
 
 void Magma::encryptTextAVX2(std::span<byteVectorMagma> src, std::span<byteVectorMagma> dest) const
