@@ -1,11 +1,25 @@
 #include "Magma.h"
 #include <iostream>
-#include <omp.h>
 #include "table4X256.hpp"
 #include "table2X65536.hpp"
 
-// Çàìåíèòü íà äðóãóþ ñòóêòóðó èëè 8x8; //âìåñòî broadcast +
+// Заменить на другую стуктуру или 8x8; //вместо broadcast +
 halfVectorMagma roundKeys[8][8];
+
+key::key(uint8_t* data)
+{
+	std::copy_n(data, 32, bytes);
+}
+
+halfVectorMagma::halfVectorMagma(const uint32_t src) : vector{ src } {}
+
+byteVectorMagma::byteVectorMagma(const halfVectorMagma& left, const halfVectorMagma& right) : lo{ left }, hi{ right } {}
+
+byteVectorMagma::byteVectorMagma(uint16_t l0, uint16_t l1, uint16_t l2, uint16_t l3) : l0{ l0 }, l1{ l1 }, l2{ l2 }, l3{ l3 } {}
+byteVectorMagma::byteVectorMagma(uint8_t* data)
+{
+	std::copy_n(data, 8, bytes);
+}
 
 void expandKeys(const key& key);
 
@@ -15,98 +29,169 @@ Magma::Magma(const key& key) {
 
 void expandKeys(const key& key)
 {
-	for (int i = 7; i >= 0; --i)
+	for (int i = 0; i < 8; ++i)
 	{
-		for (size_t j = 0; j < 8; ++j)
+		for (int j = 0; j < 8; ++j)
 		{
-			std::copy(key.bytes + 4 * (7-i), key.bytes + 4 * (7 - i) + 4, roundKeys[i][j].bytes);
+			roundKeys[i][j].vector = reinterpret_cast<const uint32_t*>(key.bytes)[i];
 		}
 	}
 }
 
-__m256i gTransformationAVX(float const* roundKeyAddr, const __m256i data)   // change float* to key*
-{	
-	const int blockMask = 0xB1;
+__m256i invBytes(__m256i data)
+{
+	uint32_t mask = 0x10203;
+	__m256i mask2 = _mm256_set1_epi32(mask);
+	return _mm256_shuffle_epi8(data, mask2);
+}
+
+
+__m256i tTransofrmAVX2(__m256i data)
+{
+	/*
+	* Function transformation T.
+	* don't work (hi halfs 16-bit), sTable2x65535 is not correct
+	*/
 	const int loMask = 0x2;
 	const int hiMask = 0x1;
-	const int blendMask = 0x5555; //5555
 
-	__m256i vectorKey = _mm256_castps_si256(_mm256_load_ps(roundKeyAddr)); // Dont do this. When tou use "load float" the CPU may assume that subsequent operations will be also with floats and assign the operation to an FPU execution port. Then when you start integer ops, the CPU have to transfer execution to an Integer execution port, which has some delay
-	__m256i result = _mm256_add_epi32(vectorKey, data);
-
-	__m128i lo = _mm256_extracti128_si256(result, loMask);
-	__m128i hi = _mm256_extracti128_si256(result, hiMask);
+	__m128i lo = _mm256_extracti128_si256(data, loMask);
+	__m128i hi = _mm256_extracti128_si256(data, hiMask);
 
 	__m256i expandedLo = _mm256_cvtepu16_epi32(lo);
 	__m256i expandedHi = _mm256_cvtepu16_epi32(hi);
-	// _mm256_extracti128_si256, cvt, blend + ???
-	//__m256i tmp1 = _mm256_setr_epi16(result.m256i_i16[0], 0, result.m256i_i16[2], 0, result.m256i_i16[4], 0, result.m256i_i16[6], 0, result.m256i_i16[8], 0, result.m256i_i16[10], 0, result.m256i_i16[12], 0, result.m256i_i16[14], 0);
-	//__m256i tmp2 = _mm256_setr_epi16(result.m256i_i16[1], 0, result.m256i_i16[3], 0, result.m256i_i16[5], 0, result.m256i_i16[7], 0, result.m256i_i16[9], 0, result.m256i_i16[11], 0, result.m256i_i16[13], 0, result.m256i_i16[15], 0);
 
-	__m256i resultLo = _mm256_castps_si256(_mm256_i32gather_ps((float const*)sTable2x65536, expandedLo, 1));
-	__m256i resultHi = _mm256_castps_si256(_mm256_i32gather_ps((float const*)sTable2x65536, expandedHi, 1));
-	
-	resultHi = _mm256_shuffle_epi32(resultHi, blockMask);
-	result = _mm256_blend_epi32(resultHi, resultLo, blendMask);
-	//result = _mm256_set_m128i(resultHi, resultLo);
-	//result = _mm256_setr_epi16(result2.m256i_i16[0], result1.m256i_i16[0], result2.m256i_i16[2], result1.m256i_i16[2], result2.m256i_i16[4], result1.m256i_i16[4], result2.m256i_i16[6], result1.m256i_i16[6], result2.m256i_i16[8], result1.m256i_i16[8], result2.m256i_i16[10], result1.m256i_i16[10], result2.m256i_i16[12], result1.m256i_i16[12], result2.m256i_i16[14], result1.m256i_i16[14]);
+	__m256i resultLo = _mm256_i32gather_epi32((int const*)sTable2x65536, expandedLo, 2);
+	__m256i resultHi = _mm256_i32gather_epi32((int const*)sTable2x65536, expandedHi, 2);
 
-	__m128i shift;
-	shift.m128i_u64[0] = 11;
-	__m256i resultShift = _mm256_sll_epi32(result, shift); // _mm256_slli_epi32
-	shift.m128i_u64[0] = 21;
-	__m256i resultShift2 = _mm256_srl_epi32(result, shift); // _mm256_srli_epi32
-	result = _mm256_xor_si256(resultShift, resultShift2);
+	__m256i tmp1 = _mm256_shufflelo_epi16(resultLo, 0xD8);
+	__m256i tmp2 = _mm256_shufflehi_epi16(resultLo, 0xD8);
+
+	__m256i tmp3 = _mm256_shuffle_epi32(tmp2, 0xD8);
+	__m256i tmp4 = _mm256_blend_epi32(tmp1, tmp3, ~0x55);
+	__m256i tmpx = _mm256_shuffle_epi32(tmp4, 0x4E);
+
+	__m128i s = _mm256_extracti128_si256(tmp4, loMask);
+	__m128i ss = _mm256_extracti128_si256(tmpx, hiMask);
+
+	__m128i resLo = _mm_blend_epi32(s, ss, 0xC);
+
+	tmp1 = _mm256_shufflelo_epi16(resultHi, 0xD8);
+	tmp2 = _mm256_shufflehi_epi16(resultHi, 0xD8);
+
+	tmp3 = _mm256_shuffle_epi32(tmp2, 0xD8);
+	tmp4 = _mm256_blend_epi32(tmp1, tmp3, ~0x55);
+	tmpx = _mm256_shuffle_epi32(tmp4, 0x4E);
+
+	s = _mm256_extracti128_si256(tmp4, loMask);
+	ss = _mm256_extracti128_si256(tmpx, hiMask);
+
+	__m128i resHi = _mm_blend_epi32(s, ss, 0xC);
+
+	return _mm256_insertf128_si256(_mm256_castsi128_si256(resLo), resHi, 0x1);
+}
+
+__m256i cyclicShift11(__m256i data)
+{
+	/*
+	* Function cyclic shift left on 11
+	*/
+	__m256i resultShift = _mm256_slli_epi32(data, 11);
+	__m256i resultShift2 = _mm256_srli_epi32(data, 21);
+	return _mm256_xor_si256(resultShift, resultShift2);
+}
+
+__m256i gTransformationAVX(halfVectorMagma* roundKeyAddr, const __m256i data)
+{
+	__m256i vectorKey = _mm256_load_si256((const __m256i*)roundKeyAddr);
+
+	__m256i result = _mm256_add_epi32(vectorKey, data);
+
+	result = tTransofrmAVX2(result);
+
+	/*
+	* test tTransformation
+	*/
+	//ebd9f03a
+	uint32_t tmpPar = 0x2a196f34;
+	__m256i tmp = _mm256_set1_epi32(tmpPar);
+	__m256i resTmp = tTransofrmAVX2(tmp);
+
+	result = cyclicShift11(result);
+
 	return result;
 }
 
-inline void transformationGaVX(__m256i& leftHalfs, __m256i& rightHalfs, float const* roundKeyAddr) //inline +
+inline void transformationGaVX(__m256i& loHalfs, __m256i& hiHalfs, halfVectorMagma* roundKeyAddr) //inline +
 {
-	__m256i gResult = gTransformationAVX((float const*)roundKeyAddr, leftHalfs);
-	__m256i tmp = _mm256_xor_si256(gResult, rightHalfs);
-	rightHalfs = leftHalfs;
-	leftHalfs = tmp;
+	__m256i gResult = gTransformationAVX(roundKeyAddr, loHalfs);
+	__m256i tmp = _mm256_xor_si256(gResult, hiHalfs);
+	hiHalfs = loHalfs;
+	loHalfs = tmp;
 }
 
-inline void encryptEightBlocks(__m256i& leftHalfs, __m256i& rightHalfs) //inline +
+inline void encryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
 {
 	for (size_t i = 0; i < 24; i++)
 	{
-		transformationGaVX(leftHalfs, rightHalfs, (float const*)roundKeys[i % 8]);
+		transformationGaVX(loHalfs, hiHalfs, roundKeys[i % 8]);
 	}
 	for (size_t i = 0; i < 7; i++)
 	{
-		transformationGaVX(leftHalfs, rightHalfs, (float const*)roundKeys[7 - i]);
+		transformationGaVX(loHalfs, hiHalfs, roundKeys[7 - i]);
 	}
-	__m256i gResults = gTransformationAVX((float const*)roundKeys[0], leftHalfs);
-	__m256i tmp = _mm256_xor_si256(gResults, rightHalfs);
-	rightHalfs = leftHalfs;
-	leftHalfs = tmp;
+	__m256i gResults = gTransformationAVX(roundKeys[0], loHalfs);
+	__m256i tmp = _mm256_xor_si256(gResults, hiHalfs);
+	hiHalfs = tmp;
 }
 
-void Magma::encryptTextAVX2(std::span<byteVectorMagma> src, std::span<byteVectorMagma> dest) const
-{	
-	const int blockMask = 0xB1;
-	const int rightHalfsMask = 0x55;
-	const int leftHalfsMask = 0xAA;
-	for (size_t b = 0; b < src.size_bytes()/8; b += 8) //?
+inline void decryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
+{
+	for (size_t i = 0; i < 8; i++)
 	{
-		__m256i blocks1 = _mm256_castps_si256(_mm256_loadu_ps((const float*)(src.data()+b))); //+
-		__m256i blocks2 = _mm256_castps_si256(_mm256_loadu_ps((const float*)(src.data() + b + 4))); //+
-		
-		__m256i blocks1Tmp = _mm256_shuffle_epi32(blocks1, blockMask); //+
-		__m256i blocks2Tmp = _mm256_shuffle_epi32(blocks2, blockMask); //+
+		transformationGaVX(loHalfs, hiHalfs, roundKeys[i]);
+	}
+	for (size_t i = 0; i < 23; i++)
+	{
+		transformationGaVX(loHalfs, hiHalfs, roundKeys[7 - (i % 8)]);
+	}
+	__m256i gResults = gTransformationAVX(roundKeys[0], loHalfs);
+	__m256i tmp = _mm256_xor_si256(gResults, hiHalfs);
+	hiHalfs = tmp;
+}
 
-		__m256i leftHalfs = _mm256_blend_epi32(blocks1, blocks2Tmp, leftHalfsMask); //+
-		__m256i rightHalfs = _mm256_blend_epi32(blocks2, blocks1Tmp, rightHalfsMask); //+
-		
-		encryptEightBlocks(leftHalfs, rightHalfs);
+void Magma::encryptTextAVX2(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
+{
+	const int blockMask = 0xB1;
+	const int hiHalfsMask = 0xAA;
+	const int loHalfsMask = 0x55;
+	for (size_t b = 0; b < src.size(); b += 8)
+	{
+		__m256i blocks1 = _mm256_load_si256((const __m256i*)(src.data() + b));
+		__m256i blocks2 = _mm256_load_si256((const __m256i*)(src.data() + b + 4));
 
-		blocks1 = _mm256_blend_epi32(leftHalfs, rightHalfs, rightHalfsMask);
-		blocks2 = _mm256_blend_epi32(leftHalfs, rightHalfs, rightHalfsMask);
+		__m256i blocks1Tmp = _mm256_shuffle_epi32(blocks1, blockMask);
+		__m256i blocks2Tmp = _mm256_shuffle_epi32(blocks2, blockMask);
 
-		_mm256_storeu_ps((float*)dest.data(), _mm256_cvtepi32_ps(blocks1));
-		_mm256_storeu_ps((float*)dest.data()+32, _mm256_cvtepi32_ps(blocks2));
+		__m256i loHalfs = _mm256_blend_epi32(blocks1, blocks2Tmp, loHalfsMask);
+		__m256i hiHalfs = _mm256_blend_epi32(blocks2, blocks1Tmp, hiHalfsMask);
+
+		if (en)
+		{
+			encryptEightBlocks(loHalfs, hiHalfs);
+		}
+		else {
+			decryptEightBlocks(loHalfs, hiHalfs);
+		}
+
+		__m256i tmp = _mm256_shuffle_epi32(hiHalfs, blockMask);
+		__m256i tmp2 = _mm256_shuffle_epi32(loHalfs, blockMask);
+
+		blocks1 = _mm256_blend_epi32(loHalfs, tmp, loHalfsMask);
+		blocks2 = _mm256_blend_epi32(tmp2, hiHalfs, loHalfsMask);
+
+		_mm256_storeu_si256((__m256i*)(dest.data() + b), blocks1);
+		_mm256_storeu_si256((__m256i*)(dest.data() + b + 4), blocks2);
 	}
 }
 

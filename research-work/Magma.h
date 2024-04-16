@@ -1,43 +1,43 @@
 #pragma once
 #include <stdint.h>
 #include <inttypes.h>
-#include <algorithm>      // In a header file only the headers necessary to DECLARE the structures and functions must be present
 #include <vector>
 #include <immintrin.h>
 #include <sstream>
 #include <span>
- 
+
+__m256i tTransofrmAVX2(__m256i data);
+
 struct key {
 	uint8_t bytes[32];
-	explicit key(uint8_t* data) {              // 1. Why the function body is placed in the header file? 
-		std::copy_n(data, 32, bytes);      // 2. And for this simple action you included the entire <algorithm>? 
-	}
+	explicit key(uint8_t* data);
 };
 
 union halfVectorMagma {
 	uint8_t bytes[sizeof(uint32_t)];
 	uint32_t vector;
 	halfVectorMagma() = default;
-	halfVectorMagma(const uint32_t src) : vector{ src } {} //  Why the function body is placed in header file? 
+	halfVectorMagma(const uint32_t src);
 };
 
 union byteVectorMagma {
 	struct {
-		halfVectorMagma hi, lo;
+		halfVectorMagma lo, hi;
 	};
-
+	struct {
+		uint16_t l0, l1, l2, l3;
+	};
 	halfVectorMagma halfs[2];
 	uint8_t bytes[8];
+	uint64_t ull;
 	byteVectorMagma() = default;
-	byteVectorMagma(const halfVectorMagma& left, const halfVectorMagma& right) : lo{ left }, hi{ right } {} //  Why the function body is placed in header file? 
-	explicit byteVectorMagma(uint8_t* data) {  // 1.Why the function body is placed in header file? 
-		std::copy_n(data, 8, bytes);       // 2.And for this simple action you included the entire <algorithm>? 
-	}
+	byteVectorMagma(const halfVectorMagma& left, const halfVectorMagma& right); //+
+	byteVectorMagma(uint16_t l0, uint16_t l1, uint16_t l2, uint16_t l3);
+	explicit byteVectorMagma(uint8_t* data); // +
 };
 
 class Magma {
 public:
 	Magma(const key& key);
-	void encryptTextAVX(const std::vector<byteVectorMagma>& data, std::vector<byteVectorMagma>& dest) const;
-	void encryptTextAVX2(std::span<byteVectorMagma> src, std::span<byteVectorMagma> dest)  const;   // better define src  as std::span<const byteVectorMagma>
+	void encryptTextAVX2(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en)  const;
 };
