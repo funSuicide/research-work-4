@@ -55,40 +55,35 @@ __m256i tTransofrmAVX2(__m256i data)
 	const int loMask = 0x2;
 	const int hiMask = 0x1;
 
-	__m128i lo = _mm256_extracti128_si256(data, loMask);
-	__m128i hi = _mm256_extracti128_si256(data, hiMask);
+	//std::vector<byteVectorMagma> src = { {0, 1, 2, 3}, {4, 5, 6, 7}, {8,9,10,11}, {12, 13,14,15}, {16, 17, 18, 19}, {20, 21, 22, 23}, {24, 25, 26, 27}, {28, 29, 30, 31} };
+	//__m256i test16 = _mm256_load_si256((const __m256i*)(src.data())); pizdec
+
+	__m256i divTmp11 = _mm256_shufflehi_epi16(data, 0xD8);
+	__m256i divTmp12 = _mm256_shufflelo_epi16(divTmp11, 0xD8);
+
+	__m256i divTmp21 = _mm256_shuffle_epi32(divTmp12, 0xD8);
+	__m256i divTmp22 = _mm256_shuffle_epi32(divTmp12, 0x8D);
+
+	__m128i divTmp31 = _mm256_extracti128_si256(divTmp21, hiMask);
+	__m128i divTmp32 = _mm256_extracti128_si256(divTmp21, loMask);
+	__m128i divTmp33 = _mm256_extracti128_si256(divTmp22, hiMask);
+	__m128i divTmp34 = _mm256_extracti128_si256(divTmp22, loMask);
+
+	__m128i hi = _mm_blend_epi32(divTmp31, divTmp34, 0x3);
+	__m128i lo = _mm_blend_epi32(divTmp33, divTmp32, 0x3);
 
 	__m256i expandedLo = _mm256_cvtepu16_epi32(lo);
 	__m256i expandedHi = _mm256_cvtepu16_epi32(hi);
 
-	__m256i resultLo = _mm256_i32gather_epi32((int const*)sTable2x65536, expandedLo, 2);
-	__m256i resultHi = _mm256_i32gather_epi32((int const*)sTable2x65536, expandedHi, 2);
+	__m256i resultLo = _mm256_i32gather_epi32((int const*)sTable2x65536[0], expandedLo, 2);
+	__m256i resultHi = _mm256_i32gather_epi32((int const*)sTable2x65536[1], expandedHi, 2);
 
-	__m256i tmp1 = _mm256_shufflelo_epi16(resultLo, 0xD8);
-	__m256i tmp2 = _mm256_shufflehi_epi16(resultLo, 0xD8);
+	__m256i recTmp11 = _mm256_shufflehi_epi16(resultHi, 0xB1);
+	__m256i recTmp12 = _mm256_shufflelo_epi16(recTmp11, 0xB1);
 
-	__m256i tmp3 = _mm256_shuffle_epi32(tmp2, 0xD8);
-	__m256i tmp4 = _mm256_blend_epi32(tmp1, tmp3, ~0x55);
-	__m256i tmpx = _mm256_shuffle_epi32(tmp4, 0x4E);
+	__m256i result = _mm256_blend_epi16(recTmp12, resultLo, 0x5555);
 
-	__m128i s = _mm256_extracti128_si256(tmp4, loMask);
-	__m128i ss = _mm256_extracti128_si256(tmpx, hiMask);
-
-	__m128i resLo = _mm_blend_epi32(s, ss, 0xC);
-
-	tmp1 = _mm256_shufflelo_epi16(resultHi, 0xD8);
-	tmp2 = _mm256_shufflehi_epi16(resultHi, 0xD8);
-
-	tmp3 = _mm256_shuffle_epi32(tmp2, 0xD8);
-	tmp4 = _mm256_blend_epi32(tmp1, tmp3, ~0x55);
-	tmpx = _mm256_shuffle_epi32(tmp4, 0x4E);
-
-	s = _mm256_extracti128_si256(tmp4, loMask);
-	ss = _mm256_extracti128_si256(tmpx, hiMask);
-
-	__m128i resHi = _mm_blend_epi32(s, ss, 0xC);
-
-	return _mm256_insertf128_si256(_mm256_castsi128_si256(resLo), resHi, 0x1);
+	return result;
 }
 
 __m256i cyclicShift11(__m256i data)
@@ -105,17 +100,15 @@ __m256i gTransformationAVX(halfVectorMagma* roundKeyAddr, const __m256i data)
 {
 	__m256i vectorKey = _mm256_load_si256((const __m256i*)roundKeyAddr);
 
-	__m256i result = _mm256_add_epi32(vectorKey, data);
+	__m256i invData = invBytes(data);
+	vectorKey = invBytes(vectorKey);
+
+	__m256i result = _mm256_add_epi32(vectorKey, invData);
+
 
 	result = tTransofrmAVX2(result);
 
-	/*
-	* test tTransformation
-	*/
-	//ebd9f03a
-	uint32_t tmpPar = 0x2a196f34;
-	__m256i tmp = _mm256_set1_epi32(tmpPar);
-	__m256i resTmp = tTransofrmAVX2(tmp);
+	//result = invBytes(result);
 
 	result = cyclicShift11(result);
 
@@ -125,7 +118,7 @@ __m256i gTransformationAVX(halfVectorMagma* roundKeyAddr, const __m256i data)
 inline void transformationGaVX(__m256i& loHalfs, __m256i& hiHalfs, halfVectorMagma* roundKeyAddr) //inline +
 {
 	__m256i gResult = gTransformationAVX(roundKeyAddr, loHalfs);
-	__m256i tmp = _mm256_xor_si256(gResult, hiHalfs);
+	__m256i tmp = _mm256_xor_si256(invBytes(gResult), hiHalfs);
 	hiHalfs = loHalfs;
 	loHalfs = tmp;
 }
@@ -141,7 +134,7 @@ inline void encryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
 		transformationGaVX(loHalfs, hiHalfs, roundKeys[7 - i]);
 	}
 	__m256i gResults = gTransformationAVX(roundKeys[0], loHalfs);
-	__m256i tmp = _mm256_xor_si256(gResults, hiHalfs);
+	__m256i tmp = _mm256_xor_si256(invBytes(gResults), hiHalfs);
 	hiHalfs = tmp;
 }
 
@@ -156,7 +149,7 @@ inline void decryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
 		transformationGaVX(loHalfs, hiHalfs, roundKeys[7 - (i % 8)]);
 	}
 	__m256i gResults = gTransformationAVX(roundKeys[0], loHalfs);
-	__m256i tmp = _mm256_xor_si256(gResults, hiHalfs);
+	__m256i tmp = _mm256_xor_si256(invBytes(gResults), hiHalfs);
 	hiHalfs = tmp;
 }
 

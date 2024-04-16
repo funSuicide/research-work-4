@@ -7,11 +7,11 @@
 #include <string_view>
 #include <algorithm>
 #include <numeric>
-#define GIGABYTE 102410241024
+#define GIGABYTE 1024*1024*1024
 
 void test(std::vector<byteVectorMagma>& dest) {
 	dest.resize(GIGABYTE / 8);
-	for (size_t i = 0; i < GIGABYTE / 8; ++i)
+	for (size_t i = 0; i < dest.size(); ++i)
 	{
 		dest[i].halfs[0] = 17721245453 * i;
 		dest[i].halfs[1] = 17721245453 * i + 13243342;
@@ -43,10 +43,10 @@ int main()
 	double mean = std::accumulate(times.begin(), times.end(), 0.0) / times.size();
 	std::cout << mean << std::endl;
 	std::cout << "speedAlgorithm:" <<  1/mean << "GBs" <<  std::endl;
-
+	
 	*/
 
-
+	
 	//uint8_t testData[8] = { 0x10, 0x32, 0x54, 0x76, 0x98, 0xBA, 0xDC, 0xFE };
 	uint8_t testData[8] = { 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10 };
 	uint8_t testKeyBytes[32] = { 0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00, 0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff };
@@ -69,7 +69,7 @@ int main()
 	m.encryptTextAVX2(dest, dest2, 0);
 
 	std::cout << "1" <<  std::endl;
-
+	
 };
 
 
