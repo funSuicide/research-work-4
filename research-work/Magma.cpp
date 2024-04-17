@@ -33,15 +33,15 @@ void expandKeys(const key& key)
 	{
 		for (int j = 0; j < 8; ++j)
 		{
-			roundKeys[i][j].vector = reinterpret_cast<const uint32_t*>(key.bytes)[i];
+			roundKeys[i][j].vector = reinterpret_cast<const uint32_t*>(key.bytes)[7-i];
 		}
 	}
 }
 
 __m256i invBytes(__m256i data)
 {
-	uint32_t mask = 0x10203;
-	__m256i mask2 = _mm256_set1_epi32(mask);
+	uint32_t mask[] = { 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F, 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F };
+	__m256i mask2 = _mm256_load_si256((const __m256i*)mask);
 	return _mm256_shuffle_epi8(data, mask2);
 }
 
@@ -56,7 +56,7 @@ __m256i tTransofrmAVX2(__m256i data)
 	const int hiMask = 0x1;
 
 	//std::vector<byteVectorMagma> src = { {0, 1, 2, 3}, {4, 5, 6, 7}, {8,9,10,11}, {12, 13,14,15}, {16, 17, 18, 19}, {20, 21, 22, 23}, {24, 25, 26, 27}, {28, 29, 30, 31} };
-	//__m256i test16 = _mm256_load_si256((const __m256i*)(src.data())); pizdec
+	//__m256i test16 = _mm256_load_si256((const __m256i*)(src.data())); 
 
 	__m256i divTmp11 = _mm256_shufflehi_epi16(data, 0xD8);
 	__m256i divTmp12 = _mm256_shufflelo_epi16(divTmp11, 0xD8);
@@ -100,17 +100,20 @@ __m256i gTransformationAVX(halfVectorMagma* roundKeyAddr, const __m256i data)
 {
 	__m256i vectorKey = _mm256_load_si256((const __m256i*)roundKeyAddr);
 
-	__m256i invData = invBytes(data);
-	vectorKey = invBytes(vectorKey);
+	//__m256i invData = invBytes(data);
+	//vectorKey = invBytes(vectorKey);
 
-	__m256i result = _mm256_add_epi32(vectorKey, invData);
+	__m256i result = _mm256_add_epi32(vectorKey, data);
 
+	//result = invBytes(result);
 
 	result = tTransofrmAVX2(result);
 
 	//result = invBytes(result);
 
 	result = cyclicShift11(result);
+
+	result = invBytes(result);
 
 	return result;
 }
@@ -156,8 +159,8 @@ inline void decryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
 void Magma::encryptTextAVX2(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
 {
 	const int blockMask = 0xB1;
-	const int hiHalfsMask = 0xAA;
-	const int loHalfsMask = 0x55;
+	const int hiHalfsMask = 0x55; //AA
+	const int loHalfsMask = 0xAA;
 	for (size_t b = 0; b < src.size(); b += 8)
 	{
 		__m256i blocks1 = _mm256_load_si256((const __m256i*)(src.data() + b));
