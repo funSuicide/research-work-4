@@ -7,8 +7,8 @@
 #include <span>
 #include "Structures.h"
 
-class Magma {
+class MagmaAVX512 {
 public:
-	Magma(const key& key);
-	void encryptTextAVX2(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en)  const;
+	MagmaAVX512(const key& key);
+	void encryptTextAVX512(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en)  const;
 };

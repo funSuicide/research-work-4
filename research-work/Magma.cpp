@@ -6,21 +6,6 @@
 // Заменить на другую стуктуру или 8x8; //вместо broadcast +
 halfVectorMagma roundKeys[8][8];
 
-key::key(uint8_t* data)
-{
-	std::copy_n(data, 32, bytes);
-}
-
-halfVectorMagma::halfVectorMagma(const uint32_t src) : vector{ src } {}
-
-byteVectorMagma::byteVectorMagma(const halfVectorMagma& left, const halfVectorMagma& right) : lo{ left }, hi{ right } {}
-
-byteVectorMagma::byteVectorMagma(uint16_t l0, uint16_t l1, uint16_t l2, uint16_t l3) : l0{ l0 }, l1{ l1 }, l2{ l2 }, l3{ l3 } {}
-byteVectorMagma::byteVectorMagma(uint8_t* data)
-{
-	std::copy_n(data, 8, bytes);
-}
-
 void expandKeys(const key& key);
 
 Magma::Magma(const key& key) {
@@ -33,7 +18,7 @@ void expandKeys(const key& key)
 	{
 		for (int j = 0; j < 8; ++j)
 		{
-			roundKeys[i][j].vector = reinterpret_cast<const uint32_t*>(key.bytes)[7-i];
+			roundKeys[i][j].vector = reinterpret_cast<const uint32_t*>(key.bytes)[i];
 		}
 	}
 }
@@ -98,12 +83,13 @@ __m256i cyclicShift11(__m256i data)
 
 __m256i gTransformationAVX(halfVectorMagma* roundKeyAddr, const __m256i data)
 {
+
 	__m256i vectorKey = _mm256_load_si256((const __m256i*)roundKeyAddr);
 
-	//__m256i invData = invBytes(data);
-	//vectorKey = invBytes(vectorKey);
+	__m256i invData = invBytes(data);
+	vectorKey = invBytes(vectorKey);
 
-	__m256i result = _mm256_add_epi32(vectorKey, data);
+	__m256i result = _mm256_add_epi32(vectorKey, invData);
 
 	//result = invBytes(result);
 
@@ -113,7 +99,7 @@ __m256i gTransformationAVX(halfVectorMagma* roundKeyAddr, const __m256i data)
 
 	result = cyclicShift11(result);
 
-	result = invBytes(result);
+	//result = invBytes(result);
 
 	return result;
 }
@@ -159,8 +145,8 @@ inline void decryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
 void Magma::encryptTextAVX2(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
 {
 	const int blockMask = 0xB1;
-	const int hiHalfsMask = 0x55; //AA
-	const int loHalfsMask = 0xAA;
+	const int hiHalfsMask = 0xAA; //AA
+	const int loHalfsMask = 0x55;
 	for (size_t b = 0; b < src.size(); b += 8)
 	{
 		__m256i blocks1 = _mm256_load_si256((const __m256i*)(src.data() + b));
