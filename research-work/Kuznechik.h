@@ -14,6 +14,6 @@ class Kuznechik {
 public:
     Kuznechik(const key& key);
     void encryptTextAVX2(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en)  const;
+    void encryptTextAVX512(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en)  const;
 };
 
-static std::array<byteVectorKuznechik, 32> getConstTable();
