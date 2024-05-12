@@ -9,6 +9,20 @@ byteVectorKuznechik::byteVectorKuznechik(uint8_t* data)
 	std::copy_n(data, 16, bytes);
 }
 
+byteVectorKuznechik::byteVectorKuznechik()
+{
+	lo = 0;
+	hi = 0;
+}
+
+byteVectorKuznechik::byteVectorKuznechik(uint8_t byte)
+{
+	for (size_t i = 0; i < 16; ++i)
+	{
+		this->bytes[i] = byte;
+	}
+}
+
 key::key(uint8_t* data)
 {
 	std::copy_n(data, 32, bytes);

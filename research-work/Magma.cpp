@@ -18,7 +18,7 @@ void expandKeys(const key& key)
 	{
 		for (int j = 0; j < 8; ++j)
 		{
-			roundKeys[i][j].vector = reinterpret_cast<const uint32_t*>(key.bytes)[i];
+			roundKeys[i][j].vector = reinterpret_cast<const uint32_t*>(key.bytes)[7-i];
 		}
 	}
 }
@@ -83,23 +83,23 @@ __m256i cyclicShift11(__m256i data)
 
 __m256i gTransformationAVX(halfVectorMagma* roundKeyAddr, const __m256i data)
 {
-
 	__m256i vectorKey = _mm256_load_si256((const __m256i*)roundKeyAddr);
 
-	__m256i invData = invBytes(data);
-	vectorKey = invBytes(vectorKey);
+	//__m256i invData = invBytes(data);
+	//vectorKey = invBytes(vectorKey);
 
-	__m256i result = _mm256_add_epi32(vectorKey, invData);
+	__m256i result = _mm256_add_epi32(vectorKey, data);
 
 	//result = invBytes(result);
 
 	result = tTransofrmAVX2(result);
 
 	//result = invBytes(result);
+	//result = invBytes(result);
 
 	result = cyclicShift11(result);
 
-	//result = invBytes(result);
+	result = invBytes(result);
 
 	return result;
 }
@@ -145,8 +145,8 @@ inline void decryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
 void Magma::encryptTextAVX2(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
 {
 	const int blockMask = 0xB1;
-	const int hiHalfsMask = 0xAA; //AA
-	const int loHalfsMask = 0x55;
+	const int hiHalfsMask = 0x55; //AA
+	const int loHalfsMask = 0xAA;
 	for (size_t b = 0; b < src.size(); b += 8)
 	{
 		__m256i blocks1 = _mm256_load_si256((const __m256i*)(src.data() + b));

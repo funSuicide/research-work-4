@@ -19,9 +19,10 @@ union byteVectorKuznechik {
         halfVectorKuznechik lo, hi;
     };
     uint8_t bytes[sizeof(uint64_t) * 2];
-    byteVectorKuznechik() = default;
+    byteVectorKuznechik();
     byteVectorKuznechik(const halfVectorKuznechik& lo, const halfVectorKuznechik& hi);
     explicit byteVectorKuznechik(uint8_t* src);
+    byteVectorKuznechik(uint8_t byte);
 };
 
 union halfVectorMagma {

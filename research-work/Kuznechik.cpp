@@ -1,5 +1,6 @@
 #include "Kuznechik.h"
 #include <array>
+#include <algorithm>
 
 static constexpr uint8_t sTable[256] = {
 	0xFC, 0xEE, 0xDD, 0x11, 0xCF, 0x6E, 0x31, 0x16,
@@ -35,9 +36,21 @@ static constexpr uint8_t sTable[256] = {
 	0x59, 0xA6, 0x74, 0xD2, 0xE6, 0xF4, 0xB4, 0xC0,
 	0xD1, 0x66, 0xAF, 0xC2, 0x39, 0x4B, 0x63, 0xB6 };
 
-static constexpr uint8_t lVector[16] = { 148, 1, 32, 133, 16, 194, 192, 1, 251, 1, 192, 194, 16, 133, 32, 148 };
+//static constexpr uint8_t lVector[16] = { 148, 32, 133, 16, 194, 192, 1, 251, 1, 192, 194, 16, 133, 32, 148, 1 };
 
-byteVectorKuznechik roundKeys[10][2];
+static constexpr uint8_t lVector[16] = { 1, 148, 32, 133, 16, 194, 192, 1, 251, 1, 192, 194, 16, 133, 32, 148 };
+
+std::array<std::array<byteVectorKuznechik, 256>, 16> startByteT; //= getStartTable();
+std::array <byteVectorKuznechik, 32> constTable; //= getConstTable();
+
+__m256i invBytesKuz(__m256i data)
+{
+	uint64_t mask[] = { 0x001020304050607, 0x08090A0B0C0D0E0F, 0x001020304050607, 0x08090A0B0C0D0E0F };
+	__m256i mask2 = _mm256_load_si256((const __m256i*)mask);
+	return _mm256_shuffle_epi8(data, mask2);
+}
+
+byteVectorKuznechik roundKeysKuznechik[10][2];
 
 uint8_t multiplicationGalua(uint8_t first, uint8_t second) {
 	uint8_t result = 0;
@@ -72,7 +85,7 @@ byteVectorKuznechik transformationS(const byteVectorKuznechik src) {
 
 byteVectorKuznechik transformationR(const byteVectorKuznechik src) {
 	uint8_t a_15 = 0;
-	byteVectorKuznechik internal;
+	static byteVectorKuznechik internal = { 0, 0 };
 	for (int i = 15; i >= 0; i--) {
 		if (i - 1 >= 0) {
 			internal.bytes[i - 1] = src.bytes[i];
@@ -83,12 +96,13 @@ byteVectorKuznechik transformationR(const byteVectorKuznechik src) {
 	return internal;
 }
 
-byteVectorKuznechik transformaionL(const byteVectorKuznechik inData) {
-	byteVectorKuznechik internal = inData;
+byteVectorKuznechik transformaionL(const byteVectorKuznechik& inData) {
+	static byteVectorKuznechik tmp;
+	std::copy_n(inData.bytes, 16, tmp.bytes);
 	for (int i = 0; i < 16; i++) {
-		internal = transformationR(internal);
+		tmp = transformationR(tmp);
 	}
-	return internal;
+	return tmp;
 }
 
 byteVectorKuznechik transformationF(const byteVectorKuznechik src, const byteVectorKuznechik cons) {
@@ -101,61 +115,71 @@ byteVectorKuznechik transformationF(const byteVectorKuznechik src, const byteVec
 }
 
 
-static std::array <byteVectorKuznechik, 32> getConstTable() {
-	std::array <byteVectorKuznechik, 32> constTable;
-	byteVectorKuznechik numberIter;
+void getConstTableKuz() {
+	//std::array <byteVectorKuznechik, 32> constTable;
+	byteVectorKuznechik numberIter = { halfVectorKuznechik(0), halfVectorKuznechik(0)};
 	numberIter.bytes[0] += 0x01;
 	for (int i = 0; i < 32; i++) {
-		byteVectorKuznechik result;
+		byteVectorKuznechik result = { 0, 0 };
 		result = transformaionL(numberIter);
 		constTable[i] = result;
 		numberIter.bytes[0] += 0x01;
 	}
-	return constTable;
+	//return constTable;
 }
 
 
-static std::array<std::array<byteVectorKuznechik, 256>, 16> getStartTable() {
+void getStartTable() {
 	std::array<std::array<byteVectorKuznechik, 256>, 16> startByteT;
-	for (int j = 0; j < 16; j++) {
-		uint8_t a = 0;
+	for (int j = 0; j < 16; ++j) {
 		byteVectorKuznechik tmp{};
 		for (int i = 0; i < 256; i++) {
+
+			//byteVectorKuznechik tmp2(tmp.bytes[j]);
+
 			byteVectorKuznechik c = transformationS(tmp);
+
+			for (size_t q = 0; q < 16; ++q)
+			{
+				if (q != j) c.bytes[q] = 0;
+			}
+
 			byteVectorKuznechik d = transformaionL(c);
+
 			startByteT[j][i] = d;
 			tmp.bytes[j] += 0x01;
 		}
 	}
-	return startByteT;
 }
 
-const std::array<std::array<byteVectorKuznechik, 256>, 16> startByteT = getStartTable();
-const std::array <byteVectorKuznechik, 32> constTable = getConstTable();
-
 void getRoundKeys(const key& mainKey) {
-	uint8_t left[16];
-	uint8_t right[16];
-	std::copy(mainKey.bytes, mainKey.bytes + 16, left);
-	std::copy(mainKey.bytes + 16, mainKey.bytes + 32, right);
-	byteVectorKuznechik leftPart(left);
-	byteVectorKuznechik rightPart(right);
-	roundKeys[0][0] = leftPart;
-	roundKeys[0][1] = leftPart;
-	roundKeys[1][0] = rightPart;
-	roundKeys[1][1] = rightPart;
-	for (size_t i = 0; i < 8; i++) {
+	uint8_t lo[16];
+	uint8_t hi[16];
+	size_t numberKey = 0;
+	std::copy(mainKey.bytes, mainKey.bytes + 16, lo);
+	std::copy(mainKey.bytes + 16, mainKey.bytes + 32, hi);
+	byteVectorKuznechik leftPart(lo);
+	byteVectorKuznechik rightPart(hi);
+	roundKeysKuznechik[0][0] = rightPart;
+	roundKeysKuznechik[0][1] = rightPart;
+	roundKeysKuznechik[1][0] = leftPart;
+	roundKeysKuznechik[1][1] = leftPart;
+	numberKey += 2;
+	for (size_t i = 1; i < 5; i++) {
 		int iter = 0;
 		for (size_t j = 0; j < 8; j++) {
+			byteVectorKuznechik tmp2 = leftPart;
 			leftPart = rightPart;
-			byteVectorKuznechik tmp = transformationF(rightPart, constTable[iter]);
-			rightPart = xOR(tmp, leftPart);
+			byteVectorKuznechik tmp = transformationF(rightPart, constTable[(8 * (i-1) + j)]);
+			rightPart = xOR(tmp, tmp2);
 			iter++;
 		}
-		roundKeys[2 + i][0] = leftPart;
-		roundKeys[2 + i][1] = leftPart;
-		roundKeys[2 + i + 1][0] = rightPart;
-		roundKeys[2 + i + 1][1] = rightPart;
+		roundKeysKuznechik[numberKey][0] = rightPart;
+		roundKeysKuznechik[numberKey][1] = rightPart;
+		numberKey++;
+		roundKeysKuznechik[numberKey][0] = leftPart;
+		roundKeysKuznechik[numberKey][1] = leftPart;
+		numberKey++;
 	}
 }
 
@@ -163,7 +187,7 @@ __m256i encryptBlockAVX2(__m256i blocks) {
 	__m256i result = blocks;
 	byteVectorKuznechik t[2];
 	for (size_t i = 0; i < 9; ++i) {
-		__m256i keys = _mm256_load_si256((const __m256i*)roundKeys[i]);
+		__m256i keys = _mm256_load_si256((const __m256i*)roundKeysKuznechik[i]);
 		result = _mm256_xor_si256(result, keys);
 		_mm256_store_si256((__m256i*)t, result);
 		__m256i tmp = _mm256_setzero_si256();
@@ -171,9 +195,9 @@ __m256i encryptBlockAVX2(__m256i blocks) {
 			__m256i valuesAVX = _mm256_loadu2_m128i((const __m128i *)&startByteT[j][t[1].bytes[j]], (const __m128i*)&startByteT[j][t[0].bytes[j]]);
 			tmp = _mm256_xor_si256(tmp, valuesAVX);
 		}
-		result = _mm256_xor_si256(tmp, result);
+		result = tmp;
 	}
-	__m256i lastKeys = _mm256_load_si256((const __m256i*)roundKeys[9]);
+	__m256i lastKeys = _mm256_load_si256((const __m256i*)roundKeysKuznechik[9]);
 	result = _mm256_xor_si256(result, lastKeys);
 	return result;
 }
@@ -184,10 +208,12 @@ void Kuznechik::encryptTextAVX2(std::span<const byteVectorKuznechik> src, std::s
 	{
 		__m256i blocks = _mm256_load_si256((const __m256i*)(src.data() + b));
 		__m256i result = encryptBlockAVX2(blocks);
-		_mm256_storeu_si256((__m256i*)(dest.data() + b), blocks);
+		_mm256_storeu_si256((__m256i*)(dest.data() + b), result);
 	}
 }
 
 Kuznechik::Kuznechik(const key& mainKey) {
 	getRoundKeys(mainKey);
+	getConstTableKuz();
+	getStartTable();
 }

@@ -11,6 +11,39 @@
 #include <numeric>
 #define GIGABYTE 1024*1024*1024
 
+std::ostream& operator << (std::ostream& s, const byteVectorKuznechik& block) {
+	for (int i = sizeof(byteVectorKuznechik) - 1; i >= 0; --i) {
+		uint8_t high, low;
+		high = block.bytes[i] >> 4;
+		low = block.bytes[i] & 0xf;
+		s << (char)(high < 10 ? ('0' + high) : ('A' + high - 10));
+		s << (char)(low < 10 ? ('0' + low) : ('A' + low - 10));
+	}
+	return s;
+}
+
+std::ostream& operator << (std::ostream& s, const byteVectorMagma& block) {
+	for (int i = sizeof(byteVectorMagma) - 1; i >= 0; --i) {
+		uint8_t high, low;
+		high = block.bytes[i] >> 4;
+		low = block.bytes[i] & 0xf;
+		s << (char)(high < 10 ? ('0' + high) : ('A' + high - 10));
+		s << (char)(low < 10 ? ('0' + low) : ('A' + low - 10));
+	}
+	return s;
+}
+
+std::ostream& operator << (std::ostream& s, const key& key) {
+	for (int i = sizeof(key) - 1; i >= 0; --i) {
+		uint8_t high, low;
+		high = key.bytes[i] >> 4;
+		low = key.bytes[i] & 0xf;
+		s << (char)(high < 10 ? ('0' + high) : ('A' + high - 10));
+		s << (char)(low < 10 ? ('0' + low) : ('A' + low - 10));
+	}
+	return s;
+}
+
 void test(std::vector<byteVectorMagma>& dest) {
 	dest.resize(GIGABYTE / 8);
 	for (size_t i = 0; i < dest.size(); ++i)
@@ -21,7 +54,7 @@ void test(std::vector<byteVectorMagma>& dest) {
 }
 
 void test2(std::vector<byteVectorKuznechik>& dest) {
-	dest.resize(GIGABYTE / 8);
+	dest.resize(GIGABYTE / 16);
 	for (size_t i = 0; i < dest.size(); ++i)
 	{
 		dest[i].lo = 17721245453 * i;
@@ -31,26 +64,46 @@ void test2(std::vector<byteVectorKuznechik>& dest) {
 
 int main()
 {
-	/*
+	uint8_t testDataBytesMag[8] = { 0x10, 0x32, 0x54, 0x76, 0x98, 0xBA, 0xDC, 0xFE };
+	uint8_t testKeyBytesMag[32] = { 0xff, 0xfe, 0xfd, 0xfc, 0xfb, 0xfa, 0xf9, 0xf8, 0xf7, 0xf6, 0xf5, 0xf4, 0xf3, 0xf2, 0xf1, 0xf0, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
+	uint8_t expectedBlockBytesMag[] = {0x3d, 0xca, 0xd8, 0xc2, 0xe5, 0x01, 0xe9, 0x4e};
+	uint8_t expectedBlockBytesKuz[] = {0xcd, 0xed, 0xd4, 0xb9, 0x42, 0x6d, 0x46, 0x5a, 0x30, 0x24, 0xbc, 0xbe, 0x90, 0x9d, 0x67, 0x7f};
+	uint8_t testDataBytesKuz[] = { 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11 };
+	uint8_t testKeyBytesKuz[] = { 0xef, 0xcd, 0xab, 0x89, 0x67, 0x45, 0x23, 0x01, 0x10, 0x32, 0x54, 0x76, 0x98, 0xba, 0xdc, 0xfe, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00, 0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88 };
+
+	byteVectorMagma testBlockMag(testDataBytesMag);
+	byteVectorMagma expectedBlockMag(expectedBlockBytesMag);
+	key testKeyMag(testKeyBytesMag);
+
+	std::vector<byteVectorMagma> testSrcMag = { testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag };
+	std::vector<byteVectorMagma> testDestMag(8);
+
+	Magma m(testKeyMag);
+
+	std::cout << "test open data for Magma: " << testBlockMag << std::endl;
+	std::cout << "test key fo Magma: " << testKeyMag << std::endl;
+	std::cout << "expected result: " << expectedBlockMag << std::endl;
+
+	m.encryptTextAVX2(testSrcMag, testDestMag, 1);
+
+	std::cout << "real result: " << testDestMag[0] << std::endl;
+
+	std::cout << "----------------------------------------------" << std::endl;
+
+	
 	using duration_t = std::chrono::duration<float>;
 	std::vector<float> times;
-	std::vector<byteVectorMagma> a;
-	test(a);
-	std::span<byteVectorMagma, GIGABYTE / 8> aa(a);
+	std::vector<byteVectorMagma> vectorForMagma;
+	test(vectorForMagma);
+	std::span<byteVectorMagma, GIGABYTE / 8> tmpMagma(vectorForMagma);
 	for (int j = 0; j < 5; ++j) {
 		std::vector<byteVectorMagma> b(GIGABYTE / 8);
 		std::span<byteVectorMagma, GIGABYTE / 8> dest(b);
 		uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
 		key S(c);
 		Magma C(S);
-		// инв байты в началеконце 
-		// ивн порядок таблиц (возможно байты внутри)
-		// кузнечик пока без gather 
-
-
-
 		auto begin = std::chrono::steady_clock::now();
-		C.encryptTextAVX2(aa, dest, 1);
+		C.encryptTextAVX2(tmpMagma, dest, 1);
 		auto end = std::chrono::steady_clock::now();
 		auto time = std::chrono::duration_cast<duration_t>(end - begin);
 		times.push_back(time.count());
@@ -58,58 +111,50 @@ int main()
 
 	double mean = std::accumulate(times.begin(), times.end(), 0.0) / times.size();
 	std::cout << mean << std::endl;
-	std::cout << "speedAlgorithm:" <<  1/mean << "GBs" <<  std::endl;
-	*/
+	std::cout << "speed algorithm Magma (AVX-2): " << 1 / mean << "GBs" << std::endl;
+
+
+	byteVectorKuznechik testBlockKuz(testDataBytesKuz);
+	byteVectorKuznechik expectedBlockKuz(expectedBlockBytesKuz);
+	key testKeyKuz(testKeyBytesKuz);
+
+	std::vector<byteVectorKuznechik> testSrcKuz = { testBlockKuz, testBlockKuz, testBlockKuz, testBlockKuz };
+	std::vector<byteVectorKuznechik> testDestKuz(4);
+
+	Kuznechik k(testKeyKuz);
 	
-	/*
+	std::cout << "test open data for Kuznechick: " << testBlockKuz << std::endl;
+	std::cout << "test key fo Kuznechik: " << testKeyKuz << std::endl;
+	std::cout << "expected result: " << expectedBlockKuz << std::endl;
+	
+	k.encryptTextAVX2(testSrcKuz, testDestKuz, 1);
+
+	std::cout << "real result: " << testDestKuz[0] << std::endl;
+
 	using duration_t = std::chrono::duration<float>;
-	std::vector<float> times;
+	std::vector<float> timesKuz;
 	std::vector<byteVectorKuznechik> a;
 	test2(a);
-	std::span<byteVectorKuznechik, GIGABYTE / 8> aa(a);
+	std::span<byteVectorKuznechik, GIGABYTE / 16> aa(a);
+
+	uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
+	key S(c);
+	Kuznechik C(S);
+
 	for (int j = 0; j < 5; ++j) {
-		std::vector<byteVectorKuznechik> b(GIGABYTE / 8);
-		std::span<byteVectorKuznechik, GIGABYTE / 8> dest(b);
-		uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
-		key S(c);
-		Kuznechik C(S);
+		std::vector<byteVectorKuznechik> b(GIGABYTE / 16);
+		std::span<byteVectorKuznechik, GIGABYTE / 16> dest(b);
 		auto begin = std::chrono::steady_clock::now();
 		C.encryptTextAVX2(aa, dest, 1);
 		auto end = std::chrono::steady_clock::now();
 		auto time = std::chrono::duration_cast<duration_t>(end - begin);
-		times.push_back(time.count());
+		timesKuz.push_back(time.count());
 	}
 
-	double mean = std::accumulate(times.begin(), times.end(), 0.0) / times.size();
+	mean = std::accumulate(timesKuz.begin(), timesKuz.end(), 0.0) / timesKuz.size();
 	std::cout << mean << std::endl;
-	std::cout << "speedAlgorithm:" <<  1/mean << "GBs" <<  std::endl;
-	*/
-	
+	std::cout << "speed algorithm Kuznechik (AVX-2): " << 1 / mean << "GBs" << std::endl;
 
-	/*
-	//uint8_t testData[8] = { 0x10, 0x32, 0x54, 0x76, 0x98, 0xBA, 0xDC, 0xFE };
-	uint8_t testData[8] = { 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10 };
-	uint8_t testKeyBytes[32] = { 0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00, 0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff };
-	//uint8_t testKeyBytes[32] = { 0xff, 0xfe, 0xfd, 0xfc, 0xfb, 0xfa, 0xf9, 0xf8, 0xf7, 0xf6, 0xf5, 0xf4, 0xf3, 0xf2, 0xf1, 0xf0, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
-	//uint32_t testKeyBytes[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-
-	byteVectorMagma testBlock(testData);
-	key testKey(testKeyBytes);
-
-	//std::vector<byteVectorMagma> src = { {0, 1}, {2, 3}, {4, 5}, {6, 7}, {8,9}, {10, 11}, {12, 13}, {14, 15} };
-	//std::vector<byteVectorMagma> src = { {0, 1, 2, 3}, {4, 5, 6, 7}, {8,9,10,11}, {12, 13,14,15}, {16, 17, 18, 19}, {20, 21, 22, 23}, {24, 25, 26, 27}, {28, 29, 30, 31} };
-	std::vector<byteVectorMagma> src = { testBlock, testBlock, testBlock, testBlock, testBlock, testBlock, testBlock, testBlock };
-	std::vector<byteVectorMagma> dest(8);
-	std::vector<byteVectorMagma> dest2(8);
-
-
-	MagmaAVX512 m(testKey);
-
-	m.encryptTextAVX512(src, dest, 1);
-	m.encryptTextAVX512(dest, dest2, 0);
-
-	std::cout << "1" <<  std::endl;*/
-	
 };
 
 
