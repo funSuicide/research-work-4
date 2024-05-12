@@ -17,7 +17,7 @@ void expandKeysAVX512(const key& key)
 	{
 		for (int j = 0; j < 16; ++j)
 		{
-			roundKeys[i][j].vector = reinterpret_cast<const uint32_t*>(key.bytes)[i];
+			roundKeys[i][j].vector = reinterpret_cast<const uint32_t*>(key.bytes)[7-i];
 		}
 	}
 }
@@ -35,43 +35,51 @@ __m512i tTransofrmAVX512(__m512i data)
 	const int loMask = 0x2;
 	const int hiMask = 0x1;
 
-	std::vector<byteVectorMagma> src = { {0, 1, 2, 3}, {4, 5, 6, 7}, {8,9,10,11}, {12, 13,14,15}, {16, 17, 18, 19}, {20, 21, 22, 23}, {24, 25, 26, 27}, {28, 29, 30, 31}, {32, 33, 34, 35}, {36, 37, 38, 39}, {40, 41, 42, 43}, {44, 45, 46, 47}, {48, 49, 50, 51}, {52, 53, 54, 55}, {56, 57, 58, 59}, {60, 61, 62, 63} };
-	__m512i test16 = _mm512_load_epi32((const __m512i*)(src.data())); 
+	//std::vector<byteVectorMagma> src = { {0, 1, 2, 3}, {4, 5, 6, 7}, {8,9,10,11}, {12, 13,14,15}, {16, 17, 18, 19}, {20, 21, 22, 23}, {24, 25, 26, 27}, {28, 29, 30, 31}};
+	//__m512i test16 = _mm512_load_epi32((const __m512i*)(src.data())); 
 
-	__m512i divTmp11 = _mm512_shufflehi_epi16(test16, 0xD8);
+	__m512i divTmp11 = _mm512_shufflehi_epi16(data, 0xD8);
 	__m512i divTmp12 = _mm512_shufflelo_epi16(divTmp11, 0xD8);
 
 	__m512i divTmp21 = _mm512_shuffle_epi32(divTmp12, 0xD8);
 	__m512i divTmp22 = _mm512_shuffle_epi32(divTmp12, 0x8D);
 
-	/*
-	__m128i divTmp31 = _mm256_extracti128_si256(divTmp21, hiMask);
-	__m128i divTmp32 = _mm256_extracti128_si256(divTmp21, loMask);
-	__m128i divTmp33 = _mm256_extracti128_si256(divTmp22, hiMask);
-	__m128i divTmp34 = _mm256_extracti128_si256(divTmp22, loMask);
+	__m256i divTmp31 = _mm512_extracti64x4_epi64(divTmp21, hiMask);
+	__m256i divTmp32 = _mm512_extracti64x4_epi64(divTmp21, loMask);
+	__m256i divTmp33 = _mm512_extracti64x4_epi64(divTmp22, hiMask);
+	__m256i divTmp34 = _mm512_extracti64x4_epi64(divTmp22, loMask);
 
-	__m128i hi = _mm_blend_epi32(divTmp31, divTmp34, 0x3);
-	__m128i lo = _mm_blend_epi32(divTmp33, divTmp32, 0x3);
+	__m256i hi = _mm256_blend_epi32(divTmp31, divTmp34, 0x33);
+	__m256i lo = _mm256_blend_epi32(divTmp33, divTmp32, 0x33);
 
-	__m256i expandedLo = _mm256_cvtepu16_epi32(lo);
-	__m256i expandedHi = _mm256_cvtepu16_epi32(hi);
+	__m256i sLo = _mm256_shuffle_epi32(lo, 0x4E);
+	__m256i ssLo = _mm256_permute4x64_epi64(sLo, 0x4E);
+	__m256i sssLo = _mm256_blend_epi32(lo, ssLo, 0x3C);
 
-	__m256i resultLo = _mm256_i32gather_epi32((int const*)sTable2x65536[0], expandedLo, 2);
-	__m256i resultHi = _mm256_i32gather_epi32((int const*)sTable2x65536[1], expandedHi, 2);
+	__m256i sHi = _mm256_shuffle_epi32(hi, 0x4E);
+	__m256i ssHi = _mm256_permute4x64_epi64(sHi, 0x4E);
+	__m256i sssHi = _mm256_blend_epi32(hi, ssHi, 0x3C);
+	
 
-	__m256i recTmp11 = _mm256_shufflehi_epi16(resultHi, 0xB1);
-	__m256i recTmp12 = _mm256_shufflelo_epi16(recTmp11, 0xB1);
+	__m512i expandedLo = _mm512_cvtepu16_epi32(sssLo);
+	__m512i expandedHi = _mm512_cvtepu16_epi32(sssHi);
+	
+	// resultHi = expandedHi;
+	//__m512i resultLo = expandedLo;
+	
+	__m512i resultLo = _mm512_i32gather_epi32(expandedLo, (int const*)sTable2x65536[0], 2);
+	__m512i resultHi = _mm512_i32gather_epi32(expandedHi, (int const*)sTable2x65536[1], 2);
 
-	__m256i result = _mm256_blend_epi16(recTmp12, resultLo, 0x5555);
-	*/
-	return test16;
+	__m512i recTmp11 = _mm512_shufflehi_epi16(resultHi, 0xB1);
+	__m512i recTmp12 = _mm512_shufflelo_epi16(recTmp11, 0xB1);
+
+	__m512i result = _mm512_mask_blend_epi16(0x55555555, recTmp12, resultLo);
+
+	return result;
 }
 
 __m512i cyclicShift11(__m512i data)
 {
-	/*
-	* Function cyclic shift left on 11
-	*/
 	__m512i resultShift = _mm512_slli_epi32(data, 11);
 	__m512i resultShift2 = _mm512_srli_epi32(data, 21);
 	return _mm512_xor_epi32(resultShift, resultShift2);
@@ -81,14 +89,16 @@ __m512i gTransformationAVX(halfVectorMagma* roundKeyAddr, const __m512i data)
 {
 	__m512i vectorKey = _mm512_load_epi32((const __m512i*)roundKeyAddr);
 
-	__m512i invData = invBytes(data);
-	vectorKey = invBytes(vectorKey);
+	//__m512i invData = invBytes(data);
+	//vectorKey = invBytes(vectorKey);
 
-	__m512i result = _mm512_add_epi32(vectorKey, invData);
+	__m512i result = _mm512_add_epi32(vectorKey, data);
 
 	result = tTransofrmAVX512(result);
 
 	result = cyclicShift11(result);
+
+	result = invBytes(result);
 
 	return result;
 }
@@ -133,19 +143,18 @@ inline void decryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs)
 
 void MagmaAVX512::encryptTextAVX512(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
 {
-	const int blockMask = 0xB1;
-	const int hiHalfsMask = 0xAA; 
-	const int loHalfsMask = 0x55;
+	const int blockMask = 0xB1B1;
+	const int hiHalfsMask = 0x5555; 
+	const int loHalfsMask = 0xAAAA;
 	for (size_t b = 0; b < src.size(); b += 16)
 	{
 		__m512i blocks1 = _mm512_load_epi32((const __m512i*)(src.data() + b));
 		__m512i blocks2 = _mm512_load_epi32((const __m512i*)(src.data() + b + 8));
 
-		__m512i blocks1Tmp = _mm512_shuffle_epi32(blocks1, (_MM_PERM_ENUM)blockMask);
-		__m512i blocks2Tmp = _mm512_shuffle_epi32(blocks2, (_MM_PERM_ENUM)blockMask);
+		__m512i blocksTmp = _mm512_shuffle_epi32(blocks1, (_MM_PERM_ENUM)blockMask);
 
-		__m512i loHalfs = _mm512_mask_blend_epi32(loHalfsMask, blocks1, blocks2Tmp);
-		__m512i hiHalfs = _mm512_mask_blend_epi32(hiHalfsMask, blocks1Tmp, blocks2);
+		__m512i loHalfs = _mm512_mask_blend_epi32(loHalfsMask, blocks1, blocksTmp);
+		__m512i hiHalfs = _mm512_mask_blend_epi32(hiHalfsMask, blocks2, blocksTmp);
 
 		
 		if (en)
