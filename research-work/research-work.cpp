@@ -71,12 +71,16 @@ int main()
 	uint8_t testDataBytesKuz[] = { 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11 };
 	uint8_t testKeyBytesKuz[] = { 0xef, 0xcd, 0xab, 0x89, 0x67, 0x45, 0x23, 0x01, 0x10, 0x32, 0x54, 0x76, 0x98, 0xba, 0xdc, 0xfe, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00, 0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88 };
 
+	
 	byteVectorMagma testBlockMag(testDataBytesMag);
 	byteVectorMagma expectedBlockMag(expectedBlockBytesMag);
 	key testKeyMag(testKeyBytesMag);
 
 	std::vector<byteVectorMagma> testSrcMag = { testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag };
 	std::vector<byteVectorMagma> testDestMag(8);
+
+	std::vector<byteVectorMagma> testSrcMag2 = { testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag, testBlockMag };
+	std::vector<byteVectorMagma> testDestMag2(16);
 
 	Magma m(testKeyMag);
 
@@ -88,11 +92,10 @@ int main()
 
 	std::cout << "real result: " << testDestMag[0] << std::endl;
 
-	std::cout << "----------------------------------------------" << std::endl;
 
-	
 	using duration_t = std::chrono::duration<float>;
-	std::vector<float> times;
+	std::vector<float> times2;
+	std::vector<float> times512;
 	std::vector<byteVectorMagma> vectorForMagma;
 	test(vectorForMagma);
 	std::span<byteVectorMagma, GIGABYTE / 8> tmpMagma(vectorForMagma);
@@ -101,18 +104,49 @@ int main()
 		std::span<byteVectorMagma, GIGABYTE / 8> dest(b);
 		uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
 		key S(c);
-		Magma C(S);
+		Magma m2(S);
 		auto begin = std::chrono::steady_clock::now();
-		C.encryptTextAVX2(tmpMagma, dest, 1);
+		m2.encryptTextAVX2(tmpMagma, dest, 1);
 		auto end = std::chrono::steady_clock::now();
 		auto time = std::chrono::duration_cast<duration_t>(end - begin);
-		times.push_back(time.count());
+		times2.push_back(time.count());
 	}
 
-	double mean = std::accumulate(times.begin(), times.end(), 0.0) / times.size();
-	std::cout << mean << std::endl;
-	std::cout << "speed algorithm Magma (AVX-2): " << 1 / mean << "GBs" << std::endl;
+	double meanM2 = std::accumulate(times2.begin(), times2.end(), 0.0) / times2.size();
+	std::cout << meanM2 << std::endl;
+	std::cout << "speed algorithm Magma (AVX-2): " << 1 / meanM2 << "GBs" << std::endl;
 
+	std::cout << "----------------------------------------------" << std::endl;
+
+	MagmaAVX512 m512(testKeyMag);
+
+	std::cout << "test open data for Magma (AVX-512): " << testBlockMag << std::endl;
+	std::cout << "test key fo Magma (AVX-512): " << testKeyMag << std::endl;
+	std::cout << "expected result (AVX-512): " << expectedBlockMag << std::endl;
+
+	m512.encryptTextAVX512(testSrcMag2, testDestMag2, 1);
+
+	std::cout << "real result (AVX-512): " << testDestMag2[0] << std::endl;
+
+	std::span<byteVectorMagma, GIGABYTE / 8> tmpMagma2(vectorForMagma);
+	for (int j = 0; j < 5; ++j) {
+		std::vector<byteVectorMagma> b(GIGABYTE / 8);
+		std::span<byteVectorMagma, GIGABYTE / 8> dest(b);
+		uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
+		key S(c);
+		MagmaAVX512 m512(S);
+		auto begin = std::chrono::steady_clock::now();
+		m512.encryptTextAVX512(tmpMagma2, dest, 1);
+		auto end = std::chrono::steady_clock::now();
+		auto time = std::chrono::duration_cast<duration_t>(end - begin);
+		times512.push_back(time.count());
+	}
+
+	double meanM512 = std::accumulate(times512.begin(), times512.end(), 0.0) / times512.size();
+	std::cout << meanM512 << std::endl;
+	std::cout << "speed algorithm Magma (AVX-2): " << 1 / meanM512 << "GBs" << std::endl;
+	
+	std::cout << "----------------------------------------------" << std::endl;
 
 	byteVectorKuznechik testBlockKuz(testDataBytesKuz);
 	byteVectorKuznechik expectedBlockKuz(expectedBlockBytesKuz);
@@ -121,40 +155,67 @@ int main()
 	std::vector<byteVectorKuznechik> testSrcKuz = { testBlockKuz, testBlockKuz, testBlockKuz, testBlockKuz };
 	std::vector<byteVectorKuznechik> testDestKuz(4);
 
-	Kuznechik k(testKeyKuz);
+	Kuznechik k2(testKeyKuz);
 	
-	std::cout << "test open data for Kuznechick: " << testBlockKuz << std::endl;
-	std::cout << "test key fo Kuznechik: " << testKeyKuz << std::endl;
-	std::cout << "expected result: " << expectedBlockKuz << std::endl;
+	std::cout << "test open data for Kuznechick (AVX-2): " << testBlockKuz << std::endl;
+	std::cout << "test key fo Kuznechik (AVX-2): " << testKeyKuz << std::endl;
+	std::cout << "expected result (AVX-2): " << expectedBlockKuz << std::endl;
 	
-	k.encryptTextAVX2(testSrcKuz, testDestKuz, 1);
+	k2.encryptTextAVX2(testSrcKuz, testDestKuz, 1);
 
-	std::cout << "real result: " << testDestKuz[0] << std::endl;
+	std::cout << "real result (AVX-2): " << testDestKuz[0] << std::endl;
 
-	using duration_t = std::chrono::duration<float>;
-	std::vector<float> timesKuz;
+	std::vector<float> timesKuz2;
+	std::vector<float> timesKuz512;
 	std::vector<byteVectorKuznechik> a;
 	test2(a);
-	std::span<byteVectorKuznechik, GIGABYTE / 16> aa(a);
 
-	uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
-	key S(c);
-	Kuznechik C(S);
-
+	std::span<byteVectorKuznechik, GIGABYTE / 16> aa2(a);
 	for (int j = 0; j < 5; ++j) {
 		std::vector<byteVectorKuznechik> b(GIGABYTE / 16);
 		std::span<byteVectorKuznechik, GIGABYTE / 16> dest(b);
+		uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
+		key S(c);
+		Kuznechik k2(S);
 		auto begin = std::chrono::steady_clock::now();
-		C.encryptTextAVX2(aa, dest, 1);
+		k2.encryptTextAVX2(aa2, dest, 1);
 		auto end = std::chrono::steady_clock::now();
 		auto time = std::chrono::duration_cast<duration_t>(end - begin);
-		timesKuz.push_back(time.count());
+		timesKuz2.push_back(time.count());
 	}
 
-	mean = std::accumulate(timesKuz.begin(), timesKuz.end(), 0.0) / timesKuz.size();
-	std::cout << mean << std::endl;
-	std::cout << "speed algorithm Kuznechik (AVX-2): " << 1 / mean << "GBs" << std::endl;
+	double meanKuz2 = std::accumulate(timesKuz2.begin(), timesKuz2.end(), 0.0) / timesKuz2.size();
+	std::cout << meanKuz2 << std::endl;
+	std::cout << "speed algorithm Kuznechik (AVX-2): " << 1 / meanKuz2 << "GBs" << std::endl;
 
+	std::cout << "----------------------------------------------" << std::endl;
+
+	std::cout << "test open data for Kuznechick (AVX-512): " << testBlockKuz << std::endl;
+	std::cout << "test key fo Kuznechik (AVX-512): " << testKeyKuz << std::endl;
+	std::cout << "expected result (AVX-512): " << expectedBlockKuz << std::endl;
+
+	k2.encryptTextAVX512(testSrcKuz, testDestKuz, 1);
+
+	std::cout << "real result (AVX-512): " << testDestKuz[0] << std::endl;
+
+	std::span<byteVectorKuznechik, GIGABYTE / 16> aa512(a);
+	for (int j = 0; j < 5; ++j) {
+		std::vector<byteVectorKuznechik> b(GIGABYTE / 16);
+		std::span<byteVectorKuznechik, GIGABYTE / 16> dest(b);
+		uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
+		key S(c);
+		Kuznechik k2(S);
+		auto begin = std::chrono::steady_clock::now();
+		k2.encryptTextAVX512(aa512, dest, 1);
+		auto end = std::chrono::steady_clock::now();
+		auto time = std::chrono::duration_cast<duration_t>(end - begin);
+		timesKuz512.push_back(time.count());
+	}
+
+	double meanKuz512 = std::accumulate(timesKuz512.begin(), timesKuz512.end(), 0.0) / timesKuz512.size();
+	std::cout << meanKuz512 << std::endl;
+	std::cout << "speed algorithm Kuznechik (AVX-512): " << 1 / meanKuz512 << "GBs" << std::endl;
+	
 };
 
 
