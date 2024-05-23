@@ -5,10 +5,15 @@
 
 halfVectorMagma roundKeys[8][16];
 
+__m512i tableByteT[4][4];
+
 void expandKeysAVX512(const key& key);
+
+void expandTableAVX512();
 
 MagmaAVX512::MagmaAVX512(const key& key) {
 	expandKeysAVX512(key);
+	expandTableAVX512();
 }
 
 void expandKeysAVX512(const key& key)
@@ -22,6 +27,17 @@ void expandKeysAVX512(const key& key)
 	}
 }
 
+void expandTableAVX512()
+{
+	for (size_t j = 0; j < 4; ++j)
+	{
+		for (size_t i = 0; i < 4; ++i)
+		{
+			tableByteT[j][i] = _mm512_load_epi32((const __m512i*)(sTable4x256[j]) + i);
+		}
+	}
+}
+
 __m512i invBytes(__m512i data)
 {
 	uint32_t mask[] = { 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F, 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F, 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F, 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F };
@@ -29,6 +45,79 @@ __m512i invBytes(__m512i data)
 	return _mm512_shuffle_epi8(data, mask2);
 }
 
+__m512i tTransformInRegistersAVX512(__m512i data)
+{
+	__m512i tmpArr[4];
+	__m512i result = data;
+	int maskByte1 = 0xFF000000;
+	int maskByte2 = 0x00FF0000;
+	int maskByte3 = 0x0000FF00;
+	int maskByte4 = 0x000000FF;
+
+	tmpArr[0] = _mm512_and_epi32(_mm512_set1_epi32(maskByte4), result);
+	tmpArr[1] = _mm512_and_epi32(_mm512_set1_epi32(maskByte3), result);
+	tmpArr[2] = _mm512_and_epi32(_mm512_set1_epi32(maskByte2), result);
+	tmpArr[3] = _mm512_and_epi32(_mm512_set1_epi32(maskByte1), result);
+
+
+	for (size_t i = 0; i < 4; ++i)
+	{
+		__m512i currentIndexes = _mm512_set1_epi8(32);
+		__mmask64 currentMask = _mm512_cmple_epu8_mask(tmpArr[i], currentIndexes);
+		size_t regIndex = 0;
+		int diff = 0;
+		__m512i tmpResult = _mm512_setzero_si512();
+
+		__mmask64 mainMask = currentMask;
+
+		__m512i tmpS = tmpArr[i];
+		for (size_t j = 0; j < 8; ++j)
+		{
+			
+			if (j != 0)
+			{
+				//currentMask = _knot_mask64(currentMask);
+				if (j == 7) {
+					currentIndexes = _mm512_set1_epi8((j + 1) * 32 - 1);
+					__mmask64 tmpmask = _mm512_cmple_epu8_mask(tmpArr[i], currentIndexes);
+					currentMask = _kand_mask64(_knot_mask64(mainMask), tmpmask);
+				}
+				else
+				{
+					currentIndexes = _mm512_set1_epi8((j + 1) * 32);
+					__mmask64 tmpmask = _mm512_cmplt_epu8_mask(tmpArr[i], currentIndexes);
+					currentMask = _kand_mask64(_knot_mask64(mainMask), tmpmask);
+				}
+	
+				
+				mainMask = _kxor_mask64(currentMask, mainMask);
+			}
+
+
+			__m512i tmpD = _mm512_sub_epi8(tmpS, _mm512_set1_epi8(diff));
+			__m512i tmp = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, tableByteT[i][regIndex]);
+			tmpResult = _mm512_xor_epi32(tmpResult, tmp);
+
+			if (j % 2 != 0) {
+				regIndex++;
+				diff += 64;
+			}
+		}
+
+		tmpArr[i] = tmpResult;
+	}
+
+	tmpArr[0] = _mm512_and_epi32(_mm512_set1_epi32(maskByte4), tmpArr[0]);
+	tmpArr[1] = _mm512_and_epi32(_mm512_set1_epi32(maskByte3), tmpArr[1]);
+	tmpArr[2] = _mm512_and_epi32(_mm512_set1_epi32(maskByte2), tmpArr[2]);
+	tmpArr[3] = _mm512_and_epi32(_mm512_set1_epi32(maskByte1), tmpArr[3]);
+
+	result = _mm512_xor_epi32(tmpArr[0], tmpArr[1]);
+	result = _mm512_xor_epi32(result, tmpArr[2]);
+	result = _mm512_xor_epi32(result, tmpArr[3]);
+
+	return result;
+}
 
 __m512i tTransofrmAVX512(__m512i data)
 {
@@ -94,7 +183,8 @@ __m512i gTransformationAVX(halfVectorMagma* roundKeyAddr, const __m512i data)
 
 	__m512i result = _mm512_add_epi32(vectorKey, data);
 
-	result = tTransofrmAVX512(result);
+	//result = tTransofrmAVX512(result);
+	result = tTransformInRegistersAVX512(result);
 
 	result = cyclicShift11(result);
 
