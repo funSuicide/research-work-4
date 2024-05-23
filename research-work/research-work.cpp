@@ -92,12 +92,13 @@ int main()
 
 	std::cout << "real result: " << testDestMag[0] << std::endl;
 
-
+	
 	using duration_t = std::chrono::duration<float>;
 	std::vector<float> times2;
 	std::vector<float> times512;
 	std::vector<byteVectorMagma> vectorForMagma;
 	test(vectorForMagma);
+	/*
 	std::span<byteVectorMagma, GIGABYTE / 8> tmpMagma(vectorForMagma);
 	for (int j = 0; j < 5; ++j) {
 		std::vector<byteVectorMagma> b(GIGABYTE / 8);
@@ -117,7 +118,7 @@ int main()
 	std::cout << "speed algorithm Magma (AVX-2): " << 1 / meanM2 << "GBs" << std::endl;
 
 	std::cout << "----------------------------------------------" << std::endl;
-
+	*/
 	MagmaAVX512 m512(testKeyMag);
 
 	std::cout << "test open data for Magma (AVX-512): " << testBlockMag << std::endl;
@@ -144,7 +145,7 @@ int main()
 
 	double meanM512 = std::accumulate(times512.begin(), times512.end(), 0.0) / times512.size();
 	std::cout << meanM512 << std::endl;
-	std::cout << "speed algorithm Magma (AVX-2): " << 1 / meanM512 << "GBs" << std::endl;
+	std::cout << "speed algorithm Magma (AVX-512): " << 1 / meanM512 << "GBs" << std::endl;
 	
 	std::cout << "----------------------------------------------" << std::endl;
 
