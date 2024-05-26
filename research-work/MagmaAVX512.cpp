@@ -140,7 +140,7 @@ inline __m512i MagmaAVX512::tTransformInRegistersAVX512(__m512i data) const
 }
 */
 
-inline __m512i MagmaAVX512::test(__m512i data) const
+inline __m512i MagmaAVX512::test(const __m512i data) const
 {
 	__m512i result = _mm512_setzero_si512();
 
@@ -159,6 +159,7 @@ inline __m512i MagmaAVX512::test(__m512i data) const
 	/*
 	* Теория по использованию масок для обработки байт в конкретных позициях (убрать часть ксоров) себя не оправдала;
 	* Пороговая скорость ~72МБ/С;
+	* Разнесение внешних итераций по отдельным блокам кода  - безрезультатно;
 	*/
 
 	// 0:
@@ -271,6 +272,7 @@ inline __m512i MagmaAVX512::test(__m512i data) const
 	
 	// 1: 
 
+	/*
 	tmp = _mm512_and_epi32(_mm512_set1_epi32(maskByte3), data);
 
 	currentIndexes = _mm512_set1_epi8(32);
@@ -279,6 +281,7 @@ inline __m512i MagmaAVX512::test(__m512i data) const
 	currentMask = _mm512_cmplt_epu8_mask(tmp, currentIndexes);
 	mainMask = currentMask;
 
+	
 	tmp = tmp;
 
 	reg1 = _mm512_load_epi32((const __m512i*)(sTable4x256[1]));
@@ -595,7 +598,7 @@ inline __m512i MagmaAVX512::test(__m512i data) const
 
 	tmp = _mm512_and_epi32(_mm512_set1_epi32(maskByte1), tmpResult);
 	result = _mm512_xor_epi32(result, tmp);
-	
+	*/
 	return result;
 }
 
