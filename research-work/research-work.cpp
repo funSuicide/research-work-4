@@ -219,7 +219,7 @@ int main()
 
 	double meanKuz512 = std::accumulate(timesKuz512.begin(), timesKuz512.end(), 0.0) / timesKuz512.size();
 	std::cout << meanKuz512 << std::endl;
-	std::cout << "speed algorithm Kuznechik (AVX-512): " << 1 / meanKuz512 << "GBs" << std::endl;*/
+	std::cout << "speed algorithm Kuznechik (AVX-512): " << 1 / meanKuz512 << "GBs" << std::endl;
 	
 };
 
