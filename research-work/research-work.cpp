@@ -48,8 +48,8 @@ void test(std::vector<byteVectorMagma>& dest) {
 	dest.resize(GIGABYTE / 8);
 	for (size_t i = 0; i < dest.size(); ++i)
 	{
-		dest[i].halfs[0] = 17721245453 * i;
-		dest[i].halfs[1] = 17721245453 * i + 13243342;
+		dest[i].halfsData.lo = 17721245453 * i;
+		dest[i].halfsData.hi = 17721245453 * i + 13243342;
 	}
 }
 
@@ -57,8 +57,8 @@ void test2(std::vector<byteVectorKuznechik>& dest) {
 	dest.resize(GIGABYTE / 16);
 	for (size_t i = 0; i < dest.size(); ++i)
 	{
-		dest[i].lo = 17721245453 * i;
-		dest[i].hi = 17721245453 * i + 13243342;
+		dest[i].halfsData.lo = 17721245453 * i;
+		dest[i].halfsData.hi = 17721245453 * i + 13243342;
 	}
 }
 
@@ -98,19 +98,21 @@ int main()
 	std::vector<float> times512;
 	std::vector<byteVectorMagma> vectorForMagma;
 	test(vectorForMagma);
-	/*
+	
+	uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
+	key S(c);
+	Magma m2(S);
+
 	std::span<byteVectorMagma, GIGABYTE / 8> tmpMagma(vectorForMagma);
 	for (int j = 0; j < 5; ++j) {
 		std::vector<byteVectorMagma> b(GIGABYTE / 8);
 		std::span<byteVectorMagma, GIGABYTE / 8> dest(b);
-		uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
-		key S(c);
-		Magma m2(S);
 		auto begin = std::chrono::steady_clock::now();
 		m2.encryptTextAVX2(tmpMagma, dest, 1);
 		auto end = std::chrono::steady_clock::now();
 		auto time = std::chrono::duration_cast<duration_t>(end - begin);
 		times2.push_back(time.count());
+		std::cout << j << ": " << time.count() << std::endl; 
 	}
 
 	double meanM2 = std::accumulate(times2.begin(), times2.end(), 0.0) / times2.size();
@@ -118,7 +120,8 @@ int main()
 	std::cout << "speed algorithm Magma (AVX-2): " << 1 / meanM2 << "GBs" << std::endl;
 
 	std::cout << "----------------------------------------------" << std::endl;
-	*/
+	
+	
 	MagmaAVX512 m512(testKeyMag);
 
 	std::cout << "test open data for Magma (AVX-512): " << testBlockMag << std::endl;
@@ -148,6 +151,7 @@ int main()
 	std::cout << "speed algorithm Magma (AVX-512): " << 1 / meanM512 << "GBs" << std::endl;
 	
 	std::cout << "----------------------------------------------" << std::endl;
+	
 
 	byteVectorKuznechik testBlockKuz(testDataBytesKuz);
 	byteVectorKuznechik expectedBlockKuz(expectedBlockBytesKuz);
@@ -215,7 +219,7 @@ int main()
 
 	double meanKuz512 = std::accumulate(timesKuz512.begin(), timesKuz512.end(), 0.0) / timesKuz512.size();
 	std::cout << meanKuz512 << std::endl;
-	std::cout << "speed algorithm Kuznechik (AVX-512): " << 1 / meanKuz512 << "GBs" << std::endl;
+	std::cout << "speed algorithm Kuznechik (AVX-512): " << 1 / meanKuz512 << "GBs" << std::endl;*/
 	
 };
 

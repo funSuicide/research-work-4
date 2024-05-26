@@ -69,8 +69,8 @@ uint8_t multiplicationGalua(uint8_t first, uint8_t second) {
 }
 
 byteVectorKuznechik xOR(const byteVectorKuznechik src1, const byteVectorKuznechik src2) {
-	halfVectorKuznechik lo = src1.lo.halfVector ^ src2.lo.halfVector;
-	halfVectorKuznechik hi = src1.hi.halfVector ^ src2.hi.halfVector;
+	halfVectorKuznechik lo = src1.halfsData.lo.halfVector ^ src2.halfsData.lo.halfVector;
+	halfVectorKuznechik hi = src1.halfsData.hi.halfVector ^ src2.halfsData.hi.halfVector;
 	return byteVectorKuznechik(lo, hi);
 }
 
@@ -220,8 +220,8 @@ __m512i encryptBlockAVX512(__m512i blocks)
 		__m512i tmp = _mm512_setzero_si512();
 		for (size_t j = 0; j < 16; j++) {
 			// _mm512_maskz_shuffle_i64x2
-			// _mm_maskz_expandloadu_epi64 - загрузить 128 бит
-			// !!! Стоит ли заменить _mm_maskz_expandloadu_epi64 на _mm_lddqu_si128 (меньше Latency) ??? (стоит)
+			// _mm_maskz_expandloadu_epi64 - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 128 пїЅпїЅпїЅ
+			// !!! пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ _mm_maskz_expandloadu_epi64 пїЅпїЅ _mm_lddqu_si128 (пїЅпїЅпїЅпїЅпїЅпїЅ Latency) ??? (пїЅпїЅпїЅпїЅпїЅ)
 
 			//__m128i tmp1 = _mm_maskz_expandloadu_epi64(0x3, (const __m128i*) & startByteT[j][t[0].bytes[j]]);
 			//__m128i tmp2 = _mm_maskz_expandloadu_epi64(0x3, (const __m128i*) & startByteT[j][t[1].bytes[j]]);

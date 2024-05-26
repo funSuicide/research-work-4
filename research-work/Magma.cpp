@@ -26,18 +26,18 @@ void expandKeys(const key& key)
 __m256i invBytes(__m256i data)
 {
 	uint32_t mask[] = { 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F, 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F };
-	__m256i mask2 = _mm256_load_si256((const __m256i*)mask);
+	__m256i mask2 = _mm256_loadu_si256((const __m256i*)mask);
 	return _mm256_shuffle_epi8(data, mask2);
 }
 
 
-__m256i tTransofrmAVX2(__m256i data)
+static inline __m256i tTransofrmAVX2(__m256i data)
 {
 	/*
 	* Function transformation T.
 	* don't work (hi halfs 16-bit), sTable2x65535 is not correct
 	*/
-	const int loMask = 0x2;
+	const int loMask = 0x0;
 	const int hiMask = 0x1;
 
 	//std::vector<byteVectorMagma> src = { {0, 1, 2, 3}, {4, 5, 6, 7}, {8,9,10,11}, {12, 13,14,15}, {16, 17, 18, 19}, {20, 21, 22, 23}, {24, 25, 26, 27}, {28, 29, 30, 31} };
@@ -66,7 +66,7 @@ __m256i tTransofrmAVX2(__m256i data)
 	__m256i recTmp11 = _mm256_shufflehi_epi16(resultHi, 0xB1);
 	__m256i recTmp12 = _mm256_shufflelo_epi16(recTmp11, 0xB1);
 
-	__m256i result = _mm256_blend_epi16(recTmp12, resultLo, 0x5555);
+	__m256i result = _mm256_blend_epi16(recTmp12, resultLo, 0x55);
 
 	return result;
 }
@@ -83,7 +83,7 @@ __m256i cyclicShift11(__m256i data)
 
 __m256i gTransformationAVX(halfVectorMagma* roundKeyAddr, const __m256i data)
 {
-	__m256i vectorKey = _mm256_load_si256((const __m256i*)roundKeyAddr);
+	__m256i vectorKey = _mm256_loadu_si256((const __m256i*)roundKeyAddr);
 
 	//__m256i invData = invBytes(data);
 	//vectorKey = invBytes(vectorKey);
@@ -145,18 +145,22 @@ inline void decryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
 void Magma::encryptTextAVX2(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
 {
 	const int blockMask = 0xB1;
-	const int hiHalfsMask = 0x55; //AA
+	const int hiHalfsMask = 0x55; 
 	const int loHalfsMask = 0xAA;
 	for (size_t b = 0; b < src.size(); b += 8)
 	{
-		__m256i blocks1 = _mm256_load_si256((const __m256i*)(src.data() + b));
-		__m256i blocks2 = _mm256_load_si256((const __m256i*)(src.data() + b + 4));
+
+		__m256i blocks1 = _mm256_loadu_si256((const __m256i*)(src.data() + b));
+		__m256i blocks2 = _mm256_loadu_si256((const __m256i*)(src.data() + b + 4));
+
 
 		__m256i blocks1Tmp = _mm256_shuffle_epi32(blocks1, blockMask);
 		__m256i blocks2Tmp = _mm256_shuffle_epi32(blocks2, blockMask);
 
 		__m256i loHalfs = _mm256_blend_epi32(blocks1, blocks2Tmp, loHalfsMask);
 		__m256i hiHalfs = _mm256_blend_epi32(blocks2, blocks1Tmp, hiHalfsMask);
+
+	
 
 		if (en)
 		{

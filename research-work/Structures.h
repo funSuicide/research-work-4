@@ -15,9 +15,10 @@ union halfVectorKuznechik {
 };
 
 union byteVectorKuznechik {
-    struct {
+    struct halfs 
+    {
         halfVectorKuznechik lo, hi;
-    };
+    } halfsData;
     uint8_t bytes[sizeof(uint64_t) * 2];
     byteVectorKuznechik();
     byteVectorKuznechik(const halfVectorKuznechik& lo, const halfVectorKuznechik& hi);
@@ -33,13 +34,15 @@ union halfVectorMagma {
 };
 
 union byteVectorMagma {
-    struct {
+    struct halfs
+    {
         halfVectorMagma lo, hi;
-    };
-    struct {
+    } halfsData;
+    struct quarters
+    {
         uint16_t l0, l1, l2, l3;
-    };
-    halfVectorMagma halfs[2];
+    } quartersData;
+    //halfVectorMagma halfs[2];
     uint8_t bytes[8];
     uint64_t ull;
     byteVectorMagma() = default;
