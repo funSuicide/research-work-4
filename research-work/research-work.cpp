@@ -5,6 +5,7 @@
 #include "MagmaAVX2.h"
 #include "testData.hpp"
 #include "Kuznechik.h"
+#include "MagmaAVX512.h"
 #include <chrono>
 #include <string_view>
 #include <algorithm>
@@ -187,6 +188,60 @@ void kuznechik512TestSpeed()
 	std::cout << "----------------------------------------------" << std::endl;
 }
 
+void magma512TestSpeed()
+{
+	byteVectorMagma testBlockMagma(testDataBytesMagma);
+	key testKeyMagma(testKeyBytesMagma);
+
+	MagmaAVX512 MAVX512(testKeyMagma);
+
+	byteVectorMagma expectedBlockMagma(expectedBlockBytesMagma);
+
+	std::vector<byteVectorMagma> testSrcMagma512 = { testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma };
+	std::vector<byteVectorMagma> testDestMagma512(16);
+
+
+	std::cout << "Тестовые данные: " << printVector(testBlockMagma) << std::endl;
+	std::cout << "Тестовый ключ: " << printVector(testKeyMagma) << std::endl;
+	std::cout << "Ожидаемый результат: " << printVector(expectedBlockMagma) << std::endl;
+
+	MAVX512.processData(testSrcMagma512, testDestMagma512, 1);
+
+	std::cout << "Реальный результат: " << printVector(testDestMagma512[0]) << std::endl;
+
+	std::cout << "----------------------------------------------" << std::endl;
+
+	std::cout << "Запуск теста скорости..." << std::endl;
+	
+	std::vector<float> times2;
+	std::vector<byteVectorMagma> vectorForMagma;
+	test(vectorForMagma);
+
+	uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
+	key S(c);
+	MagmaAVX512 M(S);
+
+	std::span<byteVectorMagma, GIGABYTE / 8> tmpMagma(vectorForMagma);
+
+	for (int j = 0; j < 5; ++j) {
+		std::vector<byteVectorMagma> b(GIGABYTE / 8);
+		std::span<byteVectorMagma, GIGABYTE / 8> dest(b);
+		auto begin = std::chrono::steady_clock::now();
+		M.processData(tmpMagma, dest, 1);
+		auto end = std::chrono::steady_clock::now();
+		auto time = std::chrono::duration_cast<duration_t>(end - begin);
+		times2.push_back(time.count());
+		std::cout << "Обработано: " << j+1 << " ГБ" << ": " << time.count() << std::endl;
+	}
+
+	double meanM2 = std::accumulate(times2.begin(), times2.end(), 0.0) / times2.size();
+	std::cout << meanM2 << std::endl;
+	std::cout << "Среднее значение скорости алгоритма (AVX-2): " << 1 / meanM2 << "ГБ/с" << std::endl;
+
+	std::cout << "----------------------------------------------" << std::endl;
+	
+}
+
 bool checkFile(const std::string& path)
 {
 	return std::ifstream(path, std::ios::binary).is_open();
@@ -212,14 +267,19 @@ int main(int argc, char* argv[]) {
 		algorihm = 2;
 		std::cout << "Выбран алгоритм КУЗНЕЧИК для случая AVX2." << std::endl;
 	}
-	else if (strcmp(argv[1], "-kavx2") == 0)
+	else if (strcmp(argv[1], "-kavx512") == 0)
 	{
 		algorihm = 3;
 		std::cout << "Выбран алгоритм КУЗНЕЧИК для случая AVX512." << std::endl;
 	}
+	else if (strcmp(argv[1], "-mavx512") == 0)
+	{
+		algorihm = 4;
+		std::cout << "Выбран алгоритм МАГМА для случая AVX512." << std::endl;
+	}
 	else
 	{
-		std::cout << "Некорректно задан алгоритм шифрования. Используйте: -mavx2, -kavx2, -kavx512";
+		std::cout << "Некорректно задан алгоритм шифрования. Используйте: -mavx2, -kavx2, -kavx512, -mavx512";
 		exit(0);
 	}
 	if (strcmp(argv[2], "-e") == 0)
@@ -328,6 +388,30 @@ int main(int argc, char* argv[]) {
 		break;
 	}
 	case 3: 
+	{
+		if (mode == 1)
+		{
+			auto begin = std::chrono::steady_clock::now();
+			//K2.encrypt(inputPath, outputPath);
+			auto end = std::chrono::steady_clock::now();
+			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+			std::cout << "Общее время шифрования: " << time.count() << " ms" << std::endl;
+		}
+		else if (mode == 0)
+		{
+			auto begin = std::chrono::steady_clock::now();
+			//K2.decrypt(inputPath, outputPath);
+			auto end = std::chrono::steady_clock::now();
+			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+			std::cout << "Общее время дешифрования: " << time.count() << " ms" << std::endl;
+		}
+		else if (mode == 2)
+		{
+			kuznechik512TestSpeed();
+		}
+		break;
+	}
+	case 4:
 	{
 		if (mode == 1)
 		{

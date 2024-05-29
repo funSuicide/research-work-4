@@ -11,9 +11,6 @@ class MagmaAVX512 {
 private:
 	//__m512i tableByteT[4][4];
 	halfVectorMagma roundKeys[8][16];
-
-	
-
 	inline void transformationGaVX(__m512i& loHalfs, __m512i& hiHalfs, const halfVectorMagma* roundKeyAddr) const;
 	inline __m512i gTransformationAVX(const halfVectorMagma* roundKeyAddr, const __m512i data) const;
 	inline __m512i tTransformInRegistersAVX512(__m512i data) const;
@@ -22,5 +19,5 @@ private:
 	inline __m512i test(__m512i data) const;
 public:
 	MagmaAVX512(const key& key);
-	void encryptTextAVX512(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en)  const;
+	void processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en)  const;
 };

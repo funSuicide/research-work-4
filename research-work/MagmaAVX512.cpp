@@ -140,6 +140,7 @@ inline __m512i MagmaAVX512::tTransformInRegistersAVX512(__m512i data) const
 }
 */
 
+/*
 inline __m512i MagmaAVX512::test(const __m512i data) const
 {
 	__m512i result = _mm512_setzero_si512();
@@ -164,6 +165,7 @@ inline __m512i MagmaAVX512::test(const __m512i data) const
 
 	// 0:
 
+	/*
 	__m512i tmp = _mm512_and_epi32(_mm512_set1_epi32(maskByte4), data);
 
 	__m512i currentIndexes = _mm512_set1_epi8(32);
@@ -598,17 +600,14 @@ inline __m512i MagmaAVX512::test(const __m512i data) const
 
 	tmp = _mm512_and_epi32(_mm512_set1_epi32(maskByte1), tmpResult);
 	result = _mm512_xor_epi32(result, tmp);
-	*/
-	return result;
+		return result;
 }
+*/
 
 __m512i tTransofrmAVX512(__m512i data)
 {
 	const int loMask = 0x2;
 	const int hiMask = 0x1;
-
-	//std::vector<byteVectorMagma> src = { {0, 1, 2, 3}, {4, 5, 6, 7}, {8,9,10,11}, {12, 13,14,15}, {16, 17, 18, 19}, {20, 21, 22, 23}, {24, 25, 26, 27}, {28, 29, 30, 31}};
-	//__m512i test16 = _mm512_load_epi32((const __m512i*)(src.data())); 
 
 	__m512i divTmp11 = _mm512_shufflehi_epi16(data, 0xD8);
 	__m512i divTmp12 = _mm512_shufflelo_epi16(divTmp11, 0xD8);
@@ -632,15 +631,8 @@ __m512i tTransofrmAVX512(__m512i data)
 	__m256i ssHi = _mm256_permute4x64_epi64(sHi, 0x4E);
 	__m256i sssHi = _mm256_blend_epi32(hi, ssHi, 0x3C);
 	
-
 	__m512i expandedLo = _mm512_cvtepu16_epi32(sssLo);
 	__m512i expandedHi = _mm512_cvtepu16_epi32(sssHi);
-	
-	// resultHi = expandedHi;
-	//__m512i resultLo = expandedLo;
-	
-	//__m512i resultLo = divTmp11;
-	//__m512i resultHi = divTmp12;
 
 	__m512i resultLo = _mm512_i32gather_epi32(expandedLo, (int const*)sTable2x65536[0], 2);
 	__m512i resultHi = _mm512_i32gather_epi32(expandedHi, (int const*)sTable2x65536[1], 2);
@@ -663,21 +655,10 @@ static inline __m512i cyclicShift11(__m512i data)
 inline __m512i MagmaAVX512::gTransformationAVX(const halfVectorMagma* roundKeyAddr, const __m512i data) const
 {
 	__m512i vectorKey = _mm512_load_epi32((const __m512i*)roundKeyAddr);
-
-	//__m512i invData = invBytes(data);
-	//vectorKey = invBytes(vectorKey);
-
 	__m512i result = _mm512_add_epi32(vectorKey, data);
-
-	//result = tTransofrmAVX512(result);
-	// result = tTransformInRegistersAVX512(result); 
-
 	result = test(result);
-
 	result = cyclicShift11(result);
-
 	result = invBytes(result);
-
 	return result;
 }
 
@@ -720,7 +701,7 @@ inline void MagmaAVX512::decryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs) 
 }
 
 
-void MagmaAVX512::encryptTextAVX512(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
+void MagmaAVX512::processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
 {
 	const int blockMask = 0xB1B1;
 	const int hiHalfsMask = 0x5555; 
