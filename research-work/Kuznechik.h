@@ -13,7 +13,7 @@
 class Kuznechik {
 public:
     Kuznechik(const key& key);
-    void encryptTextAVX2(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en)  const;
+    void processData(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en)  const;
     void encryptTextAVX512(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en)  const;
 };
 

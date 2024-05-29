@@ -10,5 +10,5 @@
 class Magma {
 public:
 	Magma(const key& key);
-	void encryptTextAVX2(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en)  const;
+	void processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en)  const;
 };

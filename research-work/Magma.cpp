@@ -142,7 +142,7 @@ inline void decryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
 	hiHalfs = tmp;
 }
 
-void Magma::encryptTextAVX2(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
+void Magma::processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
 {
 	const int blockMask = 0xB1;
 	const int hiHalfsMask = 0x55; 

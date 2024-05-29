@@ -36,20 +36,46 @@ static constexpr uint8_t sTable[256] = {
 	0x59, 0xA6, 0x74, 0xD2, 0xE6, 0xF4, 0xB4, 0xC0,
 	0xD1, 0x66, 0xAF, 0xC2, 0x39, 0x4B, 0x63, 0xB6 };
 
-//static constexpr uint8_t lVector[16] = { 148, 32, 133, 16, 194, 192, 1, 251, 1, 192, 194, 16, 133, 32, 148, 1 };
+
+static constexpr uint8_t revSTable[256] = {
+	0xA5, 0x2D, 0x32, 0x8F, 0x0E, 0x30, 0x38, 0xC0,
+	0x54, 0xE6, 0x9E, 0x39, 0x55, 0x7E, 0x52, 0x91,
+	0x64, 0x03, 0x57, 0x5A, 0x1C, 0x60, 0x07, 0x18,
+	0x21, 0x72, 0xA8, 0xD1, 0x29, 0xC6, 0xA4, 0x3F,
+    0xE0, 0x27, 0x8D, 0x0C, 0x82, 0xEA, 0xAE, 0xB4,
+	0x9A, 0x63, 0x49, 0xE5, 0x42, 0xE4, 0x15, 0xB7,
+	0xC8, 0x06, 0x70, 0x9D, 0x41, 0x75, 0x19, 0xC9,
+	0xAA, 0xFC, 0x4D, 0xBF, 0x2A, 0x73, 0x84, 0xD5,
+	0xC3, 0xAF, 0x2B, 0x86, 0xA7, 0xB1, 0xB2, 0x5B,
+	0x46, 0xD3, 0x9F, 0xFD, 0xD4, 0x0F, 0x9C, 0x2F,
+	0x9B, 0x43, 0xEF, 0xD9, 0x79, 0xB6, 0x53, 0x7F,
+	0xC1, 0xF0, 0x23, 0xE7, 0x25, 0x5E, 0xB5, 0x1E,
+	0xA2, 0xDF, 0xA6, 0xFE, 0xAC, 0x22, 0xF9, 0xE2,
+	0x4A, 0xBC, 0x35, 0xCA, 0xEE, 0x78, 0x05, 0x6B,
+	0x51, 0xE1, 0x59, 0xA3, 0xF2, 0x71, 0x56, 0x11,
+	0x6A, 0x89, 0x94, 0x65, 0x8C, 0xBB, 0x77, 0x3C,
+	0x7B, 0x28, 0xAB, 0xD2, 0x31, 0xDE, 0xC4, 0x5F,
+	0xCC, 0xCF, 0x76, 0x2C, 0xB8, 0xD8, 0x2E, 0x36,
+	0xDB, 0x69, 0xB3, 0x14, 0x95, 0xBE, 0x62, 0xA1,
+	0x3B, 0x16, 0x66, 0xE9, 0x5C, 0x6C, 0x6D, 0xAD,
+	0x37, 0x61, 0x4B, 0xB9, 0xE3, 0xBA, 0xF1, 0xA0,
+	0x85, 0x83, 0xDA, 0x47, 0xC5, 0xB0, 0x33, 0xFA,
+	0x96, 0x6F, 0x6E, 0xC2, 0xF6, 0x50, 0xFF, 0x5D,
+	0xA9, 0x8E, 0x17, 0x1B, 0x97, 0x7D, 0xEC, 0x58,
+	0xF7, 0x1F, 0xFB, 0x7C, 0x09, 0x0D, 0x7A, 0x67,
+	0x45, 0x87, 0xDC, 0xE8, 0x4F, 0x1D, 0x4E, 0x04,
+	0xEB, 0xF8, 0xF3, 0x3E, 0x3D, 0xBD, 0x8A, 0x88,
+	0xDD, 0xCD, 0x0B, 0x13, 0x98, 0x02, 0x93, 0x80,
+	0x90, 0xD0, 0x24, 0x34, 0xCB, 0xED, 0xF4, 0xCE,
+	0x99, 0x10, 0x44, 0x40, 0x92, 0x3A, 0x01, 0x26,
+	0x12, 0x1A, 0x48, 0x68, 0xF5, 0x81, 0x8B, 0xC7,
+	0xD6, 0x20, 0x0A, 0x08, 0x00, 0x4C, 0xD7, 0x74
+};
 
 static constexpr uint8_t lVector[16] = { 1, 148, 32, 133, 16, 194, 192, 1, 251, 1, 192, 194, 16, 133, 32, 148 };
 
-
-
-__m256i invBytesKuz(__m256i data)
-{
-	uint64_t mask[] = { 0x001020304050607, 0x08090A0B0C0D0E0F, 0x001020304050607, 0x08090A0B0C0D0E0F };
-	__m256i mask2 = _mm256_load_si256((const __m256i*)mask);
-	return _mm256_shuffle_epi8(data, mask2);
-}
-
 byteVectorKuznechik roundKeysKuznechik[10][2];
+
 
 uint8_t multiplicationGalua(uint8_t first, uint8_t second) {
 	uint8_t result = 0;
@@ -82,17 +108,54 @@ byteVectorKuznechik transformationS(const byteVectorKuznechik src) {
 	return tmp;
 }
 
+byteVectorKuznechik revTransformationS(const byteVectorKuznechik src) {
+	byteVectorKuznechik tmp{};
+	for (size_t i = 0; i < 16; i++) {
+		tmp.bytes[i] = revSTable[src.bytes[i]];
+	}
+	return tmp;
+}
+
+
 byteVectorKuznechik transformationR(const byteVectorKuznechik src) {
 	uint8_t a_15 = 0;
 	static byteVectorKuznechik internal = { 0, 0 };
 	for (int i = 15; i >= 0; i--) {
-		if (i - 1 >= 0) {
+		if (i == 0)
+		{
+			internal.bytes[15] = src.bytes[i];
+		}
+		else
+		{
 			internal.bytes[i - 1] = src.bytes[i];
 		}
 		a_15 ^= multiplicationGalua(src.bytes[i], lVector[i]);
 	}
 	internal.bytes[15] = a_15;
 	return internal;
+}
+
+byteVectorKuznechik revTransformationR(const byteVectorKuznechik src)
+{
+	uint8_t a0 = src.bytes[15];
+	static byteVectorKuznechik internal = { 0, 0 };
+	for (int i = 1; i < 16; i++)
+	{
+		internal.bytes[i] = src.bytes[i - 1];
+		a0 ^= multiplicationGalua(internal.bytes[i], lVector[i]);
+	}
+	internal.bytes[0] = a0;
+	return internal;
+}
+
+byteVectorKuznechik revTransformationL(const byteVectorKuznechik& inData)
+{
+	static byteVectorKuznechik tmp;
+	std::copy_n(inData.bytes, 16, tmp.bytes);
+	for (int i = 0; i < 16; i++) {
+		tmp = revTransformationR(tmp);
+	}
+	return tmp;
 }
 
 byteVectorKuznechik transformaionL(const byteVectorKuznechik& inData) {
@@ -134,16 +197,20 @@ std::array<std::array<byteVectorKuznechik, 256>, 16> getStartTable() {
 		byteVectorKuznechik tmp{};
 		for (int i = 0; i < 256; i++) {
 
-			//byteVectorKuznechik tmp2(tmp.bytes[j]);
-
 			byteVectorKuznechik c = transformationS(tmp);
 
 			for (size_t q = 0; q < 16; ++q)
 			{
 				if (q != j) c.bytes[q] = 0;
 			}
-
+			
 			byteVectorKuznechik d = transformaionL(c);
+
+			/*
+			for (size_t q = 0; q < 16; ++q)
+			{
+				if (q != j) d.bytes[q] = 0;
+			}*/
 
 			startByteT[j][i] = d;
 			tmp.bytes[j] += 0x01;
@@ -153,6 +220,40 @@ std::array<std::array<byteVectorKuznechik, 256>, 16> getStartTable() {
 }
 
 std::array<std::array<byteVectorKuznechik, 256>, 16> startByteT = getStartTable();
+
+std::array<std::array<byteVectorKuznechik, 256>, 16> getRevStartTable() {
+	std::array<std::array<byteVectorKuznechik, 256>, 16> res;
+	for (int j = 0; j < 16; ++j) {
+		//byteVectorKuznechik tmp{};
+		for (int i = 0; i < 256; i++) {
+
+			/*
+			byteVectorKuznechik t1 = startByteT[j][i];
+			byteVectorKuznechik t2;
+			t2.bytes[j] = i;
+
+			res[j][startByteT[j][i].bytes[j]] = t2;*/
+			
+			
+			byteVectorKuznechik c = revTransformationL(startByteT[j][i]);
+
+			byteVectorKuznechik d = revTransformationS(c);
+
+			
+			for (size_t q = 0; q < 16; ++q)
+			{
+				if (q != j) d.bytes[q] = 0;
+			}
+			
+			res[j][startByteT[j][i].bytes[j]] = d;
+			//tmp.bytes[j] += 0x01;*/
+		}
+	}
+	return res;
+}
+
+
+std::array<std::array<byteVectorKuznechik, 256>, 16> revStartByteT = getRevStartTable();
 std::array <byteVectorKuznechik, 32> constTable = getConstTableKuz();
 
 void getRoundKeys(const key& mainKey) {
@@ -191,8 +292,11 @@ __m256i encryptBlockAVX2(__m256i blocks) {
 	byteVectorKuznechik t[2];
 	for (size_t i = 0; i < 9; ++i) {
 		__m256i keys = _mm256_load_si256((const __m256i*)roundKeysKuznechik[i]);
+		
 		result = _mm256_xor_si256(result, keys);
 		_mm256_store_si256((__m256i*)t, result);
+
+		
 		__m256i tmp = _mm256_setzero_si256();
 		for (size_t j = 0; j < 16; j++) {
 			__m128i tmp1 = _mm_loadu_si128((const __m128i*) & startByteT[j][t[0].bytes[j]]);
@@ -201,10 +305,39 @@ __m256i encryptBlockAVX2(__m256i blocks) {
 			__m256i valuesAVX = _mm256_insertf128_si256(_mm256_castsi128_si256(tmp1), tmp2, 0x1);
 			tmp = _mm256_xor_si256(tmp, valuesAVX);
 		}
+
+		if (i == 8)
+		{
+			std::cout << '1';
+		}
+
+		
+
 		result = tmp;
 	}
 	__m256i lastKeys = _mm256_load_si256((const __m256i*)roundKeysKuznechik[9]);
 	result = _mm256_xor_si256(result, lastKeys);
+	return result;
+}
+
+__m256i decryptBlockAVX2(__m256i blocks) {
+	__m256i result = blocks;
+	byteVectorKuznechik t[2];
+	__m256i firstKeys = _mm256_load_si256((const __m256i*)roundKeysKuznechik[9]);
+	result = _mm256_xor_si256(result, firstKeys);
+	for (size_t i = 0; i < 9; ++i) {
+		_mm256_store_si256((__m256i*)t, result);
+		__m256i tmp = _mm256_setzero_si256();
+		for (size_t j = 0; j < 16; j++) {
+			__m128i tmp1 = _mm_loadu_si128((const __m128i*) & revStartByteT[j][t[0].bytes[j]]);
+			__m128i tmp2 = _mm_loadu_si128((const __m128i*) & revStartByteT[j][t[1].bytes[j]]);
+			__m256i valuesAVX = _mm256_insertf128_si256(_mm256_castsi128_si256(tmp1), tmp2, 0x1);
+			tmp = _mm256_xor_si256(tmp, valuesAVX);
+		}
+		result = tmp;
+		__m256i keys = _mm256_load_si256((const __m256i*)roundKeysKuznechik[8 - i]);
+		result = _mm256_xor_si256(result, keys);
+	}
 	return result;
 }
 
@@ -245,12 +378,22 @@ __m512i encryptBlockAVX512(__m512i blocks)
 	return result;
 }
 
-void Kuznechik::encryptTextAVX2(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en) const
+void Kuznechik::processData(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en) const
 {
 	for (size_t b = 0; b < src.size(); b += 2)
 	{
 		__m256i blocks = _mm256_load_si256((const __m256i*)(src.data() + b));
-		__m256i result = encryptBlockAVX2(blocks);
+
+		__m256i result = _mm256_setzero_si256();
+
+		if (en)
+		{
+			result = encryptBlockAVX2(blocks);
+		}
+		else {
+			result = decryptBlockAVX2(blocks);
+		}
+
 		_mm256_storeu_si256((__m256i*)(dest.data() + b), result);
 	}
 }
@@ -268,5 +411,4 @@ void Kuznechik::encryptTextAVX512(std::span<const byteVectorKuznechik> src, std:
 Kuznechik::Kuznechik(const key& mainKey) {
 	getRoundKeys(mainKey);
 	getConstTableKuz();
-	//getStartTable();
 }

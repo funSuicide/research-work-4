@@ -37,3 +37,11 @@ byteVectorMagma::byteVectorMagma(uint8_t* data)
 {
 	std::copy_n(data, 8, bytes);
 }
+
+byteVectorMagma::byteVectorMagma(uint8_t byte)
+{
+	for (size_t i = 0; i < 8; ++i)
+	{
+		this->bytes[i] = byte;
+	}
+}
