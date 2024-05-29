@@ -183,7 +183,7 @@ void kuznechik512TestSpeed()
 
 	double meanKuz2 = std::accumulate(timesKuz2.begin(), timesKuz2.end(), 0.0) / timesKuz2.size();
 	std::cout << meanKuz2 << std::endl;
-	std::cout << "Среднее значение скорости алгоритма (AVX-2): " << 1 / meanKuz2 << "ГБ/с" << std::endl;
+	std::cout << "Среднее значение скорости алгоритма (AVX-512): " << 1 / meanKuz2 << "ГБ/с" << std::endl;
 
 	std::cout << "----------------------------------------------" << std::endl;
 }
@@ -236,7 +236,7 @@ void magma512TestSpeed(bool reg)
 
 	double meanM2 = std::accumulate(times2.begin(), times2.end(), 0.0) / times2.size();
 	std::cout << meanM2 << std::endl;
-	std::cout << "Среднее значение скорости алгоритма (AVX-2): " << 1 / meanM2 << "ГБ/с" << std::endl;
+	std::cout << "Среднее значение скорости алгоритма (AVX-512): " << 1 / meanM2 << "ГБ/с" << std::endl;
 
 	std::cout << "----------------------------------------------" << std::endl;
 	
