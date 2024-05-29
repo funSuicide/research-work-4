@@ -1,14 +1,13 @@
-#include "Magma.h"
+#include "MagmaAVX2.h"
 #include <iostream>
 #include "table4X256.hpp"
 #include "table2X65536.hpp"
 
-// Заменить на другую стуктуру или 8x8; //вместо broadcast +
 halfVectorMagma roundKeys[8][8];
 
 void expandKeys(const key& key);
 
-Magma::Magma(const key& key) {
+MagmaAVX2::MagmaAVX2(const key& key) {
 	expandKeys(key);
 }
 
@@ -23,7 +22,7 @@ void expandKeys(const key& key)
 	}
 }
 
-__m256i invBytes(__m256i data)
+static inline __m256i invBytes(__m256i data)
 {
 	uint32_t mask[] = { 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F, 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F };
 	__m256i mask2 = _mm256_loadu_si256((const __m256i*)mask);
@@ -33,15 +32,8 @@ __m256i invBytes(__m256i data)
 
 static inline __m256i tTransofrmAVX2(__m256i data)
 {
-	/*
-	* Function transformation T.
-	* don't work (hi halfs 16-bit), sTable2x65535 is not correct
-	*/
 	const int loMask = 0x0;
 	const int hiMask = 0x1;
-
-	//std::vector<byteVectorMagma> src = { {0, 1, 2, 3}, {4, 5, 6, 7}, {8,9,10,11}, {12, 13,14,15}, {16, 17, 18, 19}, {20, 21, 22, 23}, {24, 25, 26, 27}, {28, 29, 30, 31} };
-	//__m256i test16 = _mm256_load_si256((const __m256i*)(src.data())); 
 
 	__m256i divTmp11 = _mm256_shufflehi_epi16(data, 0xD8);
 	__m256i divTmp12 = _mm256_shufflelo_epi16(divTmp11, 0xD8);
@@ -73,9 +65,6 @@ static inline __m256i tTransofrmAVX2(__m256i data)
 
 __m256i cyclicShift11(__m256i data)
 {
-	/*
-	* Function cyclic shift left on 11
-	*/
 	__m256i resultShift = _mm256_slli_epi32(data, 11);
 	__m256i resultShift2 = _mm256_srli_epi32(data, 21);
 	return _mm256_xor_si256(resultShift, resultShift2);
@@ -84,27 +73,14 @@ __m256i cyclicShift11(__m256i data)
 __m256i gTransformationAVX(halfVectorMagma* roundKeyAddr, const __m256i data)
 {
 	__m256i vectorKey = _mm256_loadu_si256((const __m256i*)roundKeyAddr);
-
-	//__m256i invData = invBytes(data);
-	//vectorKey = invBytes(vectorKey);
-
 	__m256i result = _mm256_add_epi32(vectorKey, data);
-
-	//result = invBytes(result);
-
 	result = tTransofrmAVX2(result);
-
-	//result = invBytes(result);
-	//result = invBytes(result);
-
 	result = cyclicShift11(result);
-
 	result = invBytes(result);
-
 	return result;
 }
 
-inline void transformationGaVX(__m256i& loHalfs, __m256i& hiHalfs, halfVectorMagma* roundKeyAddr) //inline +
+static inline void transformationGaVX(__m256i& loHalfs, __m256i& hiHalfs, halfVectorMagma* roundKeyAddr) 
 {
 	__m256i gResult = gTransformationAVX(roundKeyAddr, loHalfs);
 	__m256i tmp = _mm256_xor_si256(invBytes(gResult), hiHalfs);
@@ -112,7 +88,7 @@ inline void transformationGaVX(__m256i& loHalfs, __m256i& hiHalfs, halfVectorMag
 	loHalfs = tmp;
 }
 
-inline void encryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
+static inline void encryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
 {
 	for (size_t i = 0; i < 24; i++)
 	{
@@ -127,7 +103,7 @@ inline void encryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
 	hiHalfs = tmp;
 }
 
-inline void decryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
+static inline void decryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
 {
 	for (size_t i = 0; i < 8; i++)
 	{
@@ -142,14 +118,13 @@ inline void decryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
 	hiHalfs = tmp;
 }
 
-void Magma::processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
+void MagmaAVX2::processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
 {
 	const int blockMask = 0xB1;
 	const int hiHalfsMask = 0x55; 
 	const int loHalfsMask = 0xAA;
 	for (size_t b = 0; b < src.size(); b += 8)
 	{
-
 		__m256i blocks1 = _mm256_loadu_si256((const __m256i*)(src.data() + b));
 		__m256i blocks2 = _mm256_loadu_si256((const __m256i*)(src.data() + b + 4));
 
@@ -159,8 +134,6 @@ void Magma::processData(std::span<const byteVectorMagma> src, std::span<byteVect
 
 		__m256i loHalfs = _mm256_blend_epi32(blocks1, blocks2Tmp, loHalfsMask);
 		__m256i hiHalfs = _mm256_blend_epi32(blocks2, blocks1Tmp, hiHalfsMask);
-
-	
 
 		if (en)
 		{

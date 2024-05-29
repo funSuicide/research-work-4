@@ -50,19 +50,6 @@ public:
 			if (in.eof()) {
 				size_t newSize = paddingPKCS(buffer, readSize);
 
-				/*
-				if (newSize % 2 != 0)
-				{
-					buffer.resize(BLOCK_BUFFER_SIZE + 2);
-					result.resize(BLOCK_BUFFER_SIZE + 2);
-
-					for (size_t i = 0; i < sizeof(typeVector); ++i) 
-					{
-						buffer[buffer.size() - 1] = typeVector(2 * sizeof(typeVector) - readSize % sizeof(typeVector));
-					}
-
-				}*/
-
 				cryptoAlgorithm.processData(buffer, result, 1);
 				if (sizeFile % sizeof(typeVector) == 0) {
 					out.write((const char*)&result[0], (newSize) * sizeof(typeVector));

@@ -5,6 +5,7 @@
 struct key {
     uint8_t bytes[32];
     explicit key(uint8_t* data);
+    key() = default;
 };
 
 union halfVectorKuznechik {
