@@ -656,7 +656,8 @@ inline __m512i MagmaAVX512::gTransformationAVX(const halfVectorMagma* roundKeyAd
 {
 	__m512i vectorKey = _mm512_load_epi32((const __m512i*)roundKeyAddr);
 	__m512i result = _mm512_add_epi32(vectorKey, data);
-	result = test(result);
+	//result = test(result);
+	result = tTransofrmAVX512(result);
 	result = cyclicShift11(result);
 	result = invBytes(result);
 	return result;
