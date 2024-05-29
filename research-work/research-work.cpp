@@ -188,7 +188,7 @@ void kuznechik512TestSpeed()
 	std::cout << "----------------------------------------------" << std::endl;
 }
 
-void magma512TestSpeed()
+void magma512TestSpeed(bool reg)
 {
 	byteVectorMagma testBlockMagma(testDataBytesMagma);
 	key testKeyMagma(testKeyBytesMagma);
@@ -205,7 +205,7 @@ void magma512TestSpeed()
 	std::cout << "Тестовый ключ: " << printVector(testKeyMagma) << std::endl;
 	std::cout << "Ожидаемый результат: " << printVector(expectedBlockMagma) << std::endl;
 
-	MAVX512.processData(testSrcMagma512, testDestMagma512, 1);
+	MAVX512.processData(testSrcMagma512, testDestMagma512, 1, reg);
 
 	std::cout << "Реальный результат: " << printVector(testDestMagma512[0]) << std::endl;
 
@@ -227,7 +227,7 @@ void magma512TestSpeed()
 		std::vector<byteVectorMagma> b(GIGABYTE / 8);
 		std::span<byteVectorMagma, GIGABYTE / 8> dest(b);
 		auto begin = std::chrono::steady_clock::now();
-		M.processData(tmpMagma, dest, 1);
+		M.processData(tmpMagma, dest, 1, reg);
 		auto end = std::chrono::steady_clock::now();
 		auto time = std::chrono::duration_cast<duration_t>(end - begin);
 		times2.push_back(time.count());
@@ -275,11 +275,16 @@ int main(int argc, char* argv[]) {
 	else if (strcmp(argv[1], "-mavx512") == 0)
 	{
 		algorihm = 4;
-		std::cout << "Выбран алгоритм МАГМА для случая AVX512." << std::endl;
+		std::cout << "Выбран алгоритм МАГМА для случая AVX512 (таблица замен в памяти)." << std::endl;
+	}
+	else if (strcmp(argv[1], "-mavx512reg") == 0)
+	{
+		algorihm = 5;
+		std::cout << "Выбран алгоритм МАГМА для случая AVX512 (таблица замен в регистрах)." << std::endl;
 	}
 	else
 	{
-		std::cout << "Некорректно задан алгоритм шифрования. Используйте: -mavx2, -kavx2, -kavx512, -mavx512";
+		std::cout << "Некорректно задан алгоритм шифрования. Используйте: -mavx2, -kavx2, -kavx512, -mavx512, -mavx512reg";
 		exit(0);
 	}
 	if (strcmp(argv[2], "-e") == 0)
@@ -431,7 +436,31 @@ int main(int argc, char* argv[]) {
 		}
 		else if (mode == 2)
 		{
-			kuznechik512TestSpeed();
+			magma512TestSpeed();
+		}
+		break;
+	}
+	case 5:
+	{
+if (mode == 1)
+		{
+			auto begin = std::chrono::steady_clock::now();
+			//K2.encrypt(inputPath, outputPath);
+			auto end = std::chrono::steady_clock::now();
+			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+			std::cout << "Общее время шифрования: " << time.count() << " ms" << std::endl;
+		}
+		else if (mode == 0)
+		{
+			auto begin = std::chrono::steady_clock::now();
+			//K2.decrypt(inputPath, outputPath);
+			auto end = std::chrono::steady_clock::now();
+			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+			std::cout << "Общее время дешифрования: " << time.count() << " ms" << std::endl;
+		}
+		else if (mode == 2)
+		{
+			magma512TestSpeed(1);
 		}
 		break;
 	}
