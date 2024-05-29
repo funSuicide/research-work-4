@@ -49,4 +49,5 @@ union byteVectorMagma {
     byteVectorMagma(const halfVectorMagma& left, const halfVectorMagma& right); //+
     byteVectorMagma(uint16_t l0, uint16_t l1, uint16_t l2, uint16_t l3);
     explicit byteVectorMagma(uint8_t* data); // +
+    byteVectorMagma(uint8_t);
 };
