@@ -16,7 +16,7 @@ private:
 	inline __m512i tTransformInRegistersAVX512(__m512i data) const;
 	inline void encryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs) const;
 	inline void decryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs) const;
-	inline __m512i test(__m512i data) const;
+	//inline __m512i test(__m512i data) const;
 public:
 	MagmaAVX512(const key& key);
 	void processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en)  const;

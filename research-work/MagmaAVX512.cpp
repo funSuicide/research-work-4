@@ -606,7 +606,7 @@ inline __m512i MagmaAVX512::test(const __m512i data) const
 
 __m512i tTransofrmAVX512(__m512i data)
 {
-	const int loMask = 0x2;
+	const int loMask = 0x0;
 	const int hiMask = 0x1;
 
 	__m512i divTmp11 = _mm512_shufflehi_epi16(data, 0xD8);
@@ -703,7 +703,7 @@ inline void MagmaAVX512::decryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs) 
 
 void MagmaAVX512::processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
 {
-	const int blockMask = 0xB1B1;
+	const int blockMask = 0xB1;
 	const int hiHalfsMask = 0x5555; 
 	const int loHalfsMask = 0xAAAA;
 	for (size_t b = 0; b < src.size(); b += 16)
