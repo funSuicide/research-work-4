@@ -544,7 +544,7 @@ inline __m512i MagmaAVX512::gTransformationAVX(const halfVectorMagma* roundKeyAd
 
 inline void  MagmaAVX512::transformationGaVX(__m512i& loHalfs, __m512i& hiHalfs, const halfVectorMagma* roundKeyAddr, bool reg) const
 {
-	__m512i gResult = gTransformationAVX(roundKeyAddr, loHalfs);
+	__m512i gResult = gTransformationAVX(roundKeyAddr, loHalfs, reg);
 	__m512i tmp = _mm512_xor_epi32(invBytes(gResult), hiHalfs);
 	hiHalfs = loHalfs;
 	loHalfs = tmp;

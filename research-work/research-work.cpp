@@ -436,7 +436,7 @@ int main(int argc, char* argv[]) {
 		}
 		else if (mode == 2)
 		{
-			magma512TestSpeed();
+			magma512TestSpeed(0);
 		}
 		break;
 	}
