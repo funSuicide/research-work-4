@@ -485,8 +485,8 @@ __m512i tTransofrmAVX512(__m512i data)
 	__m512i divTmp11 = _mm512_shufflehi_epi16(data, 0xD8);
 	__m512i divTmp12 = _mm512_shufflelo_epi16(divTmp11, 0xD8);
 
-	__m512i divTmp21 = _mm512_shuffle_epi32(divTmp12, 0xD8);
-	__m512i divTmp22 = _mm512_shuffle_epi32(divTmp12, 0x8D);
+	__m512i divTmp21 = _mm512_shuffle_epi32(divTmp12, (_MM_PERM_ENUM)0xD8);
+	__m512i divTmp22 = _mm512_shuffle_epi32(divTmp12, (_MM_PERM_ENUM)0x8D);
 
 	__m256i divTmp31 = _mm512_extracti64x4_epi64(divTmp21, hiMask);
 	__m256i divTmp32 = _mm512_extracti64x4_epi64(divTmp21, loMask);
