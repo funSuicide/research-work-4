@@ -1,9 +1,11 @@
-cmake_minimum_required(VERSION 2.8)
-project(mainProject)
+cmake_minimum_required(VERSION 3.16)
+project(mainProject CXX)
+if(MSVC)
+	add_compile_options(/std:c++latest /arch:AVX512)
+else()
+	add_compile_options(-march=native -std=c++2b)
+endif()
 
-SET(MYCOMPILE_FLAGS "-O3 -march=native -std=c++20 -mavx2 -mavx512dq")
-
-add_definitions(${MYCOMPILE_FLAGS})
 
 add_executable(${PROJECT_NAME} research-work.cpp MagmaAVX2.cpp Kuznechik.cpp Structures.cpp MagmaAVX512.cpp)	
 

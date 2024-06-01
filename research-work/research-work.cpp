@@ -29,6 +29,8 @@ std::string printVector (const typeVector& block) {
 	return result;
 }
 
+
+//same functions - template
 void test(std::vector<byteVectorMagma>& dest) {
 	dest.resize(GIGABYTE / 8);
 	for (size_t i = 0; i < dest.size(); ++i)
@@ -244,12 +246,30 @@ void magma512TestSpeed(bool reg)
 
 bool checkFile(const std::string& path)
 {
+	// std::filesystem::exists
 	return std::ifstream(path, std::ios::binary).is_open();
 }
 
 int main(int argc, char* argv[]) {
 	int algorihm = 0;
 	int mode = 0;
+
+
+	// use this instead of constants
+	enum Mode {
+		ENCRYPT,
+		DECRYPT,
+		TEST
+	};
+
+	enum Algorithm {
+		KUZNYECHIK_AVX2,
+		KUZNYECHIK_AVX512,
+		MAGMA_AV2,
+		MAGMA_AV512,
+		MAGMA_AV512_REG,
+	};
+
 	setlocale(LC_ALL, "");
 	if (argc != 3) 
 	{
@@ -343,7 +363,7 @@ int main(int argc, char* argv[]) {
 	case 1:
 	{
 		//Encryptor<Magma, byteVectorMagma> M2(key);
-
+		// Make a template function
 		if (mode == 1)
 		{
 			auto begin = std::chrono::steady_clock::now();

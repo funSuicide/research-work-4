@@ -10,6 +10,9 @@
 class MagmaAVX512 {
 private:
 	halfVectorMagma roundKeys[8][16];
+
+    // all this must be the static inline functions from .cpp
+    // not event memers of the class
 	inline void transformationGaVX(__m512i& loHalfs, __m512i& hiHalfs, const halfVectorMagma* roundKeyAddr, bool reg) const;
 	inline __m512i gTransformationAVX(const halfVectorMagma* roundKeyAddr, const __m512i data, bool reg) const;
 	inline __m512i tTransformInRegistersAVX512(__m512i data) const;
