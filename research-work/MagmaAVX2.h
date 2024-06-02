@@ -10,6 +10,6 @@
 class MagmaAVX2 {
 public:
 	MagmaAVX2(const key& key);
-	void processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en, const byteVectorMagma& initVector)  const;
-	void processDataGamma(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en, const byteVectorMagma& initVector) const;
+	void processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en)  const;
+	void processDataGamma(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en, uint64_t iV) const;
 };
