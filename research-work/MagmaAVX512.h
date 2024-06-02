@@ -10,9 +10,6 @@
 class MagmaAVX512 {
 private:
 	halfVectorMagma roundKeys[8][16];
-
-    // all this must be the static inline functions from .cpp
-    // not event memers of the class
 public:
 	MagmaAVX512(const key& key);
 	void processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en, bool reg)  const;

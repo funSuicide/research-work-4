@@ -12,6 +12,7 @@
 #include <numeric>
 #include <cstring>
 #include <fstream>
+#include "Encryptor.h"
 #define GIGABYTE 1024*1024*1024
 
 using duration_t = std::chrono::duration<float>;
@@ -318,6 +319,7 @@ int main(int argc, char* argv[]) {
 	key key;
 	std::string inputPath;
 	std::string outputPath;
+	uint32_t iV;
 
 	if (mode == 1 || mode == 0)
 	{
@@ -330,6 +332,9 @@ int main(int argc, char* argv[]) {
 				break;
 			}
 		}
+
+		std::cout << "Введите вектор инициализации: ";
+		std::cin >> iV;
 
 		std::cout << "Введите путь до входного файла: ";
 
@@ -346,6 +351,7 @@ int main(int argc, char* argv[]) {
 		std::cout << "Введите путь до выходного файла: ";
 
 		std::cin >> outputPath;
+
 	}
 	
 	switch (algorihm)
@@ -354,10 +360,11 @@ int main(int argc, char* argv[]) {
 	{
 		//Encryptor<Magma, byteVectorMagma> M2(key);
 		// Make a template function
+		Encryptor<MagmaAVX2, byteVectorMagma> MAVX2(key);
 		if (mode == 1)
 		{
 			auto begin = std::chrono::steady_clock::now();
-			//M2.encrypt(inputPath, outputPath);
+			MAVX2.encrypt(inputPath, outputPath, iV);
 			auto end = std::chrono::steady_clock::now();
 			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 			std::cout << "Общее время шифрования: " << time.count() << " ms" << std::endl;
@@ -365,7 +372,7 @@ int main(int argc, char* argv[]) {
 		else if (mode == 0)
 		{
 			auto begin = std::chrono::steady_clock::now();
-			//M2.decrypt(inputPath, outputPath);
+			MAVX2.decrypt(inputPath, outputPath, iV);
 			auto end = std::chrono::steady_clock::now();
 			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 			std::cout << "Общее время дешифрования: " << time.count() << " ms" << std::endl;

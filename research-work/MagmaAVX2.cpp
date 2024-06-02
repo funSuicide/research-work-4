@@ -22,6 +22,16 @@ void expandKeys(const key& key)
 	}
 }
 
+static inline __m256i getStartGammaBlocks(uint32_t iV)
+{
+	uint64_t tmp[8];
+	tmp[0] = iV;
+	tmp[1] = iV + 0x01;
+	tmp[2] = iV + 0x02;
+	tmp[3] = iV + 0x03;
+	return _mm256_loadu_si256((const __m256i*)tmp);
+}
+
 static inline __m256i invBytes(__m256i data)
 {
 	uint32_t mask[] = { 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F, 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F };
@@ -151,6 +161,47 @@ void MagmaAVX2::processData(std::span<const byteVectorMagma> src, std::span<byte
 
 		_mm256_storeu_si256((__m256i*)(dest.data() + b), blocks1);
 		_mm256_storeu_si256((__m256i*)(dest.data() + b + 4), blocks2);
+	}
+}
+
+void MagmaAVX2::processDataGamma(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en, uint64_t iV) const
+{
+	const int blockMask = 0xB1;
+	const int hiHalfsMask = 0x55; 
+	const int loHalfsMask = 0xAA;
+	uint32_t diffGamma[8] = {0x04, 0x00, 0x04, 0x00, 0x04, 0x00, 0x04, 0x00};
+	__m256i diffGammaReg =  _mm256_loadu_si256((const __m256i*)diffGamma);
+
+	__m256i gammaBlocks1 = getStartGammaBlocks(iV);
+	__m256i gammaBLocks2 = _mm256_add_epi32(gammaBlocks1, diffGammaReg);
+
+	for (size_t b = 0; b < src.size(); b += 8)
+	{
+		__m256i blocks1 = _mm256_loadu_si256((const __m256i*)(src.data() + b));
+		__m256i blocks2 = _mm256_loadu_si256((const __m256i*)(src.data() + b + 4));
+
+		__m256i blocks1Tmp = _mm256_shuffle_epi32(gammaBlocks1, blockMask);
+		__m256i blocks2Tmp = _mm256_shuffle_epi32(gammaBLocks2, blockMask);
+
+		__m256i loHalfs = _mm256_blend_epi32(gammaBlocks1, blocks2Tmp, loHalfsMask);
+		__m256i hiHalfs = _mm256_blend_epi32(gammaBLocks2, blocks1Tmp, hiHalfsMask);
+
+		encryptEightBlocks(loHalfs, hiHalfs);
+
+		__m256i tmp = _mm256_shuffle_epi32(hiHalfs, blockMask);
+		__m256i tmp2 = _mm256_shuffle_epi32(loHalfs, blockMask);
+
+		tmp = _mm256_blend_epi32(loHalfs, tmp, loHalfsMask);
+		tmp2 = _mm256_blend_epi32(tmp2, hiHalfs, loHalfsMask);
+
+		blocks1 = _mm256_xor_si256(blocks1, tmp);
+		blocks2 = _mm256_xor_si256(blocks2, tmp2);
+
+		_mm256_storeu_si256((__m256i*)(dest.data() + b), blocks1);
+		_mm256_storeu_si256((__m256i*)(dest.data() + b + 4), blocks2);
+
+		gammaBLocks1 = _mm256_add_epi32(gammaBlocks1, diffGammaReg);
+		gammaBLocks2 = _mm256_add_epi32(gammaBlocks2, diffGammaReg);
 	}
 }
 

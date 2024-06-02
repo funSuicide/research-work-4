@@ -29,7 +29,7 @@ public:
 		return blockIndex;
 	}
 
-	void encrypt(const std::string& pathOne, const std::string& pathTwo) const {
+	void encrypt(const std::string& pathOne, const std::string& pathTwo, uint64_t iV;) const {
 		std::ifstream in(pathOne, std::ios::binary);
 		in.seekg(0, std::ios::end);
 		size_t sizeFile = in.tellg();
@@ -50,7 +50,7 @@ public:
 			if (in.eof()) {
 				size_t newSize = paddingPKCS(buffer, readSize);
 
-				cryptoAlgorithm.processData(buffer, result, 1);
+				cryptoAlgorithm.processDataGamma(buffer, result, 1, iV);
 				if (sizeFile % sizeof(typeVector) == 0) {
 					out.write((const char*)&result[0], (newSize) * sizeof(typeVector));
 				}
@@ -59,7 +59,7 @@ public:
 				}
 			}
 			else {
-				cryptoAlgorithm.processData(buffer, result, 1);
+				cryptoAlgorithm.processDataGamma(buffer, result, 1, iV);
 				out.write((const char*)&result[0], BLOCK_BUFFER_SIZE * sizeof(typeVector));
 			}
 		}
@@ -67,7 +67,7 @@ public:
 		out.close();
 	}
 
-	void decrypt(const std::string& pathOne, const std::string& pathTwo) const {
+	void decrypt(const std::string& pathOne, const std::string& pathTwo, uint64_t iV) const {
 		std::ifstream in(pathOne, std::ios::binary);
 		in.seekg(0, std::ios::end);
 		size_t sizeFile = in.tellg();
@@ -87,7 +87,7 @@ public:
 			size_t writeSizeBytes = readSize;
 
 			if (in.eof()) {
-				cryptoAlgorithm.processData(buffer, result, 0);
+				cryptoAlgorithm.processDataGamma(buffer, result, 0, iV);
 
 				writeSizeBytes -= result[readBlocks - 1].bytes[sizeof(typeVector) - 1];
 				if (result[readBlocks - 1].bytes[sizeof(typeVector) - 1] == 0) {
@@ -98,7 +98,7 @@ public:
 			}
 			else
 			{
-				cryptoAlgorithm.processData(buffer, result, 0);
+				cryptoAlgorithm.processDataGamma(buffer, result, 0, iV);
 				out.write((const char*)&result[0], BLOCK_BUFFER_SIZE * sizeof(typeVector));
 			}
 		}
