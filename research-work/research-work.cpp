@@ -30,7 +30,7 @@ std::string printVector (const typeVector& block) {
 }
 
 template<typename typeVector>
-void generateTestVector(typeVector& dest)
+void generateTestVector(std::vector<typeVector>& dest)
 {
 	dest.resize(GIGABYTE / sizeof(typeVector));
 	for (size_t i = 0; i < dest.size(); ++i)
@@ -39,27 +39,6 @@ void generateTestVector(typeVector& dest)
 		dest[i].halfsData.hi = 17721245453 * i + 13243342;
 	}
 }
-
-/*
-//same functions - template
-void test(std::vector<byteVectorMagma>& dest) {
-	dest.resize(GIGABYTE / 8);
-	for (size_t i = 0; i < dest.size(); ++i)
-	{
-		dest[i].halfsData.lo = 17721245453 * i;
-		dest[i].halfsData.hi = 17721245453 * i + 13243342;
-	}
-}
-
-void test2(std::vector<byteVectorKuznechik>& dest) {
-	dest.resize(GIGABYTE / 16);
-	for (size_t i = 0; i < dest.size(); ++i)
-	{
-		dest[i].halfsData.lo = 17721245453 * i;
-		dest[i].halfsData.hi = 17721245453 * i + 13243342;
-	}
-}*/
-
 
 void magmaTestSpeed()
 {
