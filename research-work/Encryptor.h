@@ -52,7 +52,7 @@ public:
 
 				cryptoAlgorithm.processDataGamma(buffer, result, 1, iV);
 				if (sizeFile % sizeof(typeVector) == 0) {
-					out.write((const char*)&result[0], (newSize) * sizeof(typeVector));
+					out.write((const char*)&result[0], readSize);
 				}
 				else {
 					out.write((const char*)&result[0], (newSize + 1) * sizeof(typeVector));
