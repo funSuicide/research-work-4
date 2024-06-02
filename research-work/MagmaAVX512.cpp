@@ -21,7 +21,7 @@ static inline __m512i invBytes(__m512i data)
 }
 
 
-static inline __m512i tTransformInRegistersAVX512(const __m512i data) const
+static inline __m512i tTransformInRegistersAVX512(const __m512i data) 
 {
 	__m512i result = _mm512_setzero_si512();
 
@@ -550,7 +550,7 @@ static inline void transformationGaVX(__m512i& loHalfs, __m512i& hiHalfs, const 
 	loHalfs = tmp;
 }
 
-static inline void  encryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool reg, const halfVectorMagma* roundKeys[16]) 
+static inline void  encryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool reg, const halfVectorMagma (&roundKeys)[8][16]) 
 {
 	for (size_t i = 0; i < 24; i++)
 	{
@@ -565,7 +565,7 @@ static inline void  encryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool 
 	hiHalfs = tmp;
 }
 
-static inline void decryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool reg, const halfVectorMagma* roundKeys[16]) 
+static inline void decryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool reg, const halfVectorMagma (&roundKeys)[8][16]) 
 {
 	for (size_t i = 0; i < 8; i++)
 	{
