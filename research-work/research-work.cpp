@@ -16,7 +16,7 @@
 
 using duration_t = std::chrono::duration<float>;
 
-template< typename typeVector>
+template<typename typeVector>
 std::string printVector (const typeVector& block) {
 	std::string result;
 	for (int i = sizeof(typeVector) - 1; i >= 0; --i) {
@@ -29,7 +29,18 @@ std::string printVector (const typeVector& block) {
 	return result;
 }
 
+template<typename typeVector>
+void generateTestVector(typeVector& dest)
+{
+	dest.resize(GIGABYTE / sizeof(typeVector));
+	for (size_t i = 0; i < dest.size(); ++i)
+	{
+		dest[i].halfsData.lo = 17721245453 * i;
+		dest[i].halfsData.hi = 17721245453 * i + 13243342;
+	}
+}
 
+/*
 //same functions - template
 void test(std::vector<byteVectorMagma>& dest) {
 	dest.resize(GIGABYTE / 8);
@@ -47,7 +58,7 @@ void test2(std::vector<byteVectorKuznechik>& dest) {
 		dest[i].halfsData.lo = 17721245453 * i;
 		dest[i].halfsData.hi = 17721245453 * i + 13243342;
 	}
-}
+}*/
 
 
 void magmaTestSpeed()
@@ -80,7 +91,7 @@ void magmaTestSpeed()
 	
 	std::vector<float> times2;
 	std::vector<byteVectorMagma> vectorForMagma;
-	test(vectorForMagma);
+	generateTestVector(vectorForMagma);
 
 	uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
 	key S(c);
@@ -135,7 +146,7 @@ void kuznechikTestSpeed()
 	std::vector<float> timesKuz2;
 
 	std::vector<byteVectorKuznechik> a;
-	test2(a);
+	generateTestVector(a);
 
 	uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
 	key S(c);
@@ -165,7 +176,7 @@ void kuznechik512TestSpeed()
 	std::vector<float> timesKuz2;
 
 	std::vector<byteVectorKuznechik> a;
-	test2(a);
+	generateTestVector(a);
 
 	uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
 	key S(c);
@@ -217,7 +228,7 @@ void magma512TestSpeed(bool reg)
 	
 	std::vector<float> times2;
 	std::vector<byteVectorMagma> vectorForMagma;
-	test(vectorForMagma);
+	generateTestVector(vectorForMagma);
 
 	uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
 	key S(c);
