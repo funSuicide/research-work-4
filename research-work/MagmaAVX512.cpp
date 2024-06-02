@@ -550,7 +550,7 @@ static inline void transformationGaVX(__m512i& loHalfs, __m512i& hiHalfs, const 
 	loHalfs = tmp;
 }
 
-static inline void  encryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool reg, const halfVectorMagma** roundKeys) const
+static inline void  encryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool reg, const halfVectorMagma* roundKeys[16]) const
 {
 	for (size_t i = 0; i < 24; i++)
 	{
@@ -565,7 +565,7 @@ static inline void  encryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool 
 	hiHalfs = tmp;
 }
 
-static inline void MagmaAVX512::decryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool reg, const halfVectorMagma** roundKeys) const
+static inline void decryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool reg, const halfVectorMagma* roundKeys[16]) const
 {
 	for (size_t i = 0; i < 8; i++)
 	{
