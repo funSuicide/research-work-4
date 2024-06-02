@@ -166,6 +166,7 @@ void MagmaAVX2::processData(std::span<const byteVectorMagma> src, std::span<byte
 
 void MagmaAVX2::processDataGamma(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en, uint64_t iV) const
 {
+	/*
 	const int blockMask = 0xB1;
 	const int hiHalfsMask = 0x55; 
 	const int loHalfsMask = 0xAA;
@@ -205,6 +206,39 @@ void MagmaAVX2::processDataGamma(std::span<const byteVectorMagma> src, std::span
 
 		gammaBlocks1 = _mm256_add_epi32(gammaBlocks1, diffGammaReg);
 		gammaBlocks2 = _mm256_add_epi32(gammaBlocks2, diffGammaReg);
+	}*/
+
+	const int blockMask = 0xB1;
+	const int hiHalfsMask = 0x55; 
+	const int loHalfsMask = 0xAA;
+	for (size_t b = 0; b < src.size(); b += 8)
+	{
+		__m256i blocks1 = _mm256_loadu_si256((const __m256i*)(src.data() + b));
+		__m256i blocks2 = _mm256_loadu_si256((const __m256i*)(src.data() + b + 4));
+
+
+		__m256i blocks1Tmp = _mm256_shuffle_epi32(blocks1, blockMask);
+		__m256i blocks2Tmp = _mm256_shuffle_epi32(blocks2, blockMask);
+
+		__m256i loHalfs = _mm256_blend_epi32(blocks1, blocks2Tmp, loHalfsMask);
+		__m256i hiHalfs = _mm256_blend_epi32(blocks2, blocks1Tmp, hiHalfsMask);
+
+		if (en)
+		{
+			encryptEightBlocks(loHalfs, hiHalfs);
+		}
+		else {
+			decryptEightBlocks(loHalfs, hiHalfs);
+		}
+
+		__m256i tmp = _mm256_shuffle_epi32(hiHalfs, blockMask);
+		__m256i tmp2 = _mm256_shuffle_epi32(loHalfs, blockMask);
+
+		blocks1 = _mm256_blend_epi32(loHalfs, tmp, loHalfsMask);
+		blocks2 = _mm256_blend_epi32(tmp2, hiHalfs, loHalfsMask);
+
+		_mm256_storeu_si256((__m256i*)(dest.data() + b), blocks1);
+		_mm256_storeu_si256((__m256i*)(dest.data() + b + 4), blocks2);
 	}
 }
 
