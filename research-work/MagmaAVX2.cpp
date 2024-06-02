@@ -172,11 +172,11 @@ void MagmaAVX2::processDataGamma(std::span<const byteVectorMagma> src, std::span
 	uint32_t diffGamma[8] = {0x04, 0x00, 0x04, 0x00, 0x04, 0x00, 0x04, 0x00};
 	__m256i diffGammaReg =  _mm256_loadu_si256((const __m256i*)diffGamma);
 
-	//__m256i gammaBlocks1 = getStartGammaBlocks(iV);
-	//__m256i gammaBlocks2 = _mm256_add_epi32(gammaBlocks1, diffGammaReg);
+	__m256i gammaBlocks1 = getStartGammaBlocks(iV);
+	__m256i gammaBlocks2 = _mm256_add_epi32(gammaBlocks1, diffGammaReg);
 
-	__m256i gammaBlocks1 = _mm256_setzero_si256();
-	__m256i gammaBlocks2 = _mm256_setzero_si256();
+	//__m256i gammaBlocks1 = _mm256_setzero_si256();
+	//__m256i gammaBlocks2 = _mm256_setzero_si256();
 
 	for (size_t b = 0; b < src.size(); b += 8)
 	{
