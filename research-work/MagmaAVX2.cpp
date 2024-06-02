@@ -173,7 +173,7 @@ void MagmaAVX2::processDataGamma(std::span<const byteVectorMagma> src, std::span
 	__m256i diffGammaReg =  _mm256_loadu_si256((const __m256i*)diffGamma);
 
 	__m256i gammaBlocks1 = getStartGammaBlocks(iV);
-	__m256i gammaBLocks2 = _mm256_add_epi32(gammaBlocks1, diffGammaReg);
+	__m256i gammaBlocks2 = _mm256_add_epi32(gammaBlocks1, diffGammaReg);
 
 	for (size_t b = 0; b < src.size(); b += 8)
 	{
@@ -181,10 +181,10 @@ void MagmaAVX2::processDataGamma(std::span<const byteVectorMagma> src, std::span
 		__m256i blocks2 = _mm256_loadu_si256((const __m256i*)(src.data() + b + 4));
 
 		__m256i blocks1Tmp = _mm256_shuffle_epi32(gammaBlocks1, blockMask);
-		__m256i blocks2Tmp = _mm256_shuffle_epi32(gammaBLocks2, blockMask);
+		__m256i blocks2Tmp = _mm256_shuffle_epi32(gammaBlocks2, blockMask);
 
 		__m256i loHalfs = _mm256_blend_epi32(gammaBlocks1, blocks2Tmp, loHalfsMask);
-		__m256i hiHalfs = _mm256_blend_epi32(gammaBLocks2, blocks1Tmp, hiHalfsMask);
+		__m256i hiHalfs = _mm256_blend_epi32(gammaBlocks2, blocks1Tmp, hiHalfsMask);
 
 		encryptEightBlocks(loHalfs, hiHalfs);
 
@@ -200,8 +200,8 @@ void MagmaAVX2::processDataGamma(std::span<const byteVectorMagma> src, std::span
 		_mm256_storeu_si256((__m256i*)(dest.data() + b), blocks1);
 		_mm256_storeu_si256((__m256i*)(dest.data() + b + 4), blocks2);
 
-		gammaBLocks1 = _mm256_add_epi32(gammaBlocks1, diffGammaReg);
-		gammaBLocks2 = _mm256_add_epi32(gammaBlocks2, diffGammaReg);
+		gammaBlocks1 = _mm256_add_epi32(gammaBlocks1, diffGammaReg);
+		gammaBlocks2 = _mm256_add_epi32(gammaBlocks2, diffGammaReg);
 	}
 }
 
