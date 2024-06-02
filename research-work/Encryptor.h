@@ -29,7 +29,7 @@ public:
 		return blockIndex;
 	}
 
-	void encrypt(const std::string& pathOne, const std::string& pathTwo, uint64_t iV;) const {
+	void encrypt(const std::string& pathOne, const std::string& pathTwo, uint64_t iV) const {
 		std::ifstream in(pathOne, std::ios::binary);
 		in.seekg(0, std::ios::end);
 		size_t sizeFile = in.tellg();
