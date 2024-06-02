@@ -13,6 +13,7 @@
 #include <cstring>
 #include <fstream>
 #include "Encryptor.h"
+#include <filesystem>
 #define GIGABYTE 1024*1024*1024
 
 using duration_t = std::chrono::duration<float>;
@@ -238,7 +239,7 @@ void magma512TestSpeed(bool reg)
 bool checkFile(const std::string& path)
 {
 	// std::filesystem::exists
-	return std::ifstream(path, std::ios::binary).is_open();
+	return std::filesystem::exists(path);
 }
 
 int main(int argc, char* argv[]) {
@@ -341,7 +342,7 @@ int main(int argc, char* argv[]) {
 		while (true) {
 			std::string testPath;
 			std::cin >> testPath;
-			if (!std::ifstream(testPath, std::ios::binary).is_open()) {
+			if (checkFile(testPath)) {
 				inputPath = testPath;
 				break;
 			}
