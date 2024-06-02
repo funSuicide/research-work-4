@@ -89,10 +89,7 @@ public:
 			if (in.eof()) {
 				cryptoAlgorithm.processDataGamma(buffer, result, 0, iV);
 
-				writeSizeBytes -= result[readBlocks - 1].bytes[sizeof(typeVector) - 1];
-				if (result[readBlocks - 1].bytes[sizeof(typeVector) - 1] == 0) {
-					writeSizeBytes -= sizeof(typeVector);
-				}
+				//writeSizeBytes -= result[readBlocks - 1].bytes[sizeof(typeVector) - 1];
 
 				out.write((const char*)&result[0], writeSizeBytes);
 			}
