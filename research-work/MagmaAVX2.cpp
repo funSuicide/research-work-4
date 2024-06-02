@@ -24,7 +24,7 @@ void expandKeys(const key& key)
 
 static inline __m256i getStartGammaBlocks(uint32_t iV)
 {
-	uint64_t tmp[8];
+	uint64_t tmp[4];
 	tmp[0] = iV;
 	tmp[1] = iV + 0x01;
 	tmp[2] = iV + 0x02;
