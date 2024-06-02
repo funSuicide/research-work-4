@@ -13,11 +13,6 @@ private:
 
     // all this must be the static inline functions from .cpp
     // not event memers of the class
-	inline void transformationGaVX(__m512i& loHalfs, __m512i& hiHalfs, const halfVectorMagma* roundKeyAddr, bool reg) const;
-	inline __m512i gTransformationAVX(const halfVectorMagma* roundKeyAddr, const __m512i data, bool reg) const;
-	inline __m512i tTransformInRegistersAVX512(__m512i data) const;
-	inline void encryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool reg) const;
-	inline void decryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool reg) const;
 public:
 	MagmaAVX512(const key& key);
 	void processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en, bool reg)  const;
