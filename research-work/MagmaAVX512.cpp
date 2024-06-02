@@ -525,7 +525,7 @@ static inline __m512i cyclicShift11(__m512i data)
 	return _mm512_xor_epi32(resultShift, resultShift2);
 }
 
-static inline gTransformationAVX(const halfVectorMagma* roundKeyAddr, const __m512i data, bool reg) const
+static inline __m512i gTransformationAVX(const halfVectorMagma* roundKeyAddr, const __m512i data, bool reg) 
 {
 	__m512i vectorKey = _mm512_loadu_epi32((const __m512i*)roundKeyAddr);
 	__m512i result = _mm512_add_epi32(vectorKey, data);
@@ -542,7 +542,7 @@ static inline gTransformationAVX(const halfVectorMagma* roundKeyAddr, const __m5
 	return result;
 }
 
-static inline void transformationGaVX(__m512i& loHalfs, __m512i& hiHalfs, const halfVectorMagma* roundKeyAddr, bool reg) const
+static inline void transformationGaVX(__m512i& loHalfs, __m512i& hiHalfs, const halfVectorMagma* roundKeyAddr, bool reg) 
 {
 	__m512i gResult = gTransformationAVX(roundKeyAddr, loHalfs, reg);
 	__m512i tmp = _mm512_xor_epi32(invBytes(gResult), hiHalfs);
@@ -550,7 +550,7 @@ static inline void transformationGaVX(__m512i& loHalfs, __m512i& hiHalfs, const 
 	loHalfs = tmp;
 }
 
-static inline void  encryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool reg, const halfVectorMagma* roundKeys[16]) const
+static inline void  encryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool reg, const halfVectorMagma* roundKeys[16]) 
 {
 	for (size_t i = 0; i < 24; i++)
 	{
@@ -565,7 +565,7 @@ static inline void  encryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool 
 	hiHalfs = tmp;
 }
 
-static inline void decryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool reg, const halfVectorMagma* roundKeys[16]) const
+static inline void decryptEightBlocks(__m512i& loHalfs, __m512i& hiHalfs, bool reg, const halfVectorMagma* roundKeys[16]) 
 {
 	for (size_t i = 0; i < 8; i++)
 	{
