@@ -21,6 +21,27 @@ public:
 		size_t blockIndex = gCount / sizeof(typeVector);
 		size_t shiftIndex = gCount % sizeof(typeVector);
 
+		while(blockIndex %8 !=0)
+		{
+			for (size_t i = shiftIndex; i < sizeof(typeVector); ++i) {
+				src[blockIndex].bytes[i] = sizeof(typeVector) - shiftIndex;
+				blockIndex++;
+			}
+		}
+
+		if (shiftIndex == 0) ++blockIndex;
+		/*
+		for (size_t i = shiftIndex; i < sizeof(typeVector); ++i) {
+			src[blockIndex].bytes[i] = sizeof(typeVector) - shiftIndex;
+		}*/
+		return blockIndex;
+	}
+
+	/*
+	size_t paddingPKCS(std::vector<typeVector>& src, size_t gCount) const {
+		size_t blockIndex = gCount / sizeof(typeVector);
+		size_t shiftIndex = gCount % sizeof(typeVector);
+
 		if (shiftIndex == 0) ++blockIndex;
 
 		for (size_t i = shiftIndex; i < sizeof(typeVector); ++i) {
@@ -28,6 +49,8 @@ public:
 		}
 		return blockIndex;
 	}
+
+	*/
 
 	void encrypt(const std::string& pathOne, const std::string& pathTwo, uint64_t iV) const {
 		std::ifstream in(pathOne, std::ios::binary);
@@ -52,12 +75,7 @@ public:
 
 				cryptoAlgorithm.processDataGamma(buffer, result, 1, iV);
 				//cryptoAlgorithm.processData(buffer, result, 1);
-				if (sizeFile % sizeof(typeVector) == 0) {
-					out.write((const char*)&result[0], readSize);
-				}
-				else {
-					out.write((const char*)&result[0], (newSize + 1) * sizeof(typeVector));
-				}
+				out.write((const char*)&result[0], (newSize + 1) * sizeof(typeVector));
 			}
 			else {
 				cryptoAlgorithm.processDataGamma(buffer, result, 1, iV);
