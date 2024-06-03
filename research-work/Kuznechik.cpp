@@ -332,6 +332,37 @@ void Kuznechik::processDataAVX512(std::span<const byteVectorKuznechik> src, std:
 	}
 }
 
+static inline __m256i getStartGammaBlocksKuznechik(uint64_t iV)
+{
+	uint64_t tmp[4];
+	tmp[0] = iV;
+	tmp[1] = iV + 0x01;
+	tmp[2] = iV + 0x02;
+	tmp[3] = iV + 0x03;
+	return _mm256_loadu_si256((const __m256i*)tmp);
+}
+
+ void Kuznechik::processDataGamma(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool, uin64_t iV)
+ {
+	uint64_t diffGamma[4] = {0x02, 0x00, 0x02, 0x00};
+	__m256i diffGammaReg =  _mm256_loadu_si256((const __m256i*)diffGamma);
+	__m256i gammalocks = getStartGammaBlocksKuznechik(iV);
+	for (size_t b = 0; b < src.size(); b += 2)
+	{
+		__m256i blocks = _mm256_loadu_si256((const __m256i*)(src.data() + b));
+
+		__m256i result = _mm256_setzero_si256();
+
+		result = encryptBlockAVX2(gammalocks);
+
+		result = _mm256_xor_si256(result, gammalocks);
+
+		_mm256_storeu_si256((__m256i*)(dest.data() + b), result);
+
+		gammalocks = _mm256_add_epi64(gammalocks, diffGammaReg);
+	}
+ }
+
 
 Kuznechik::Kuznechik(const key& mainKey) {
 	getRoundKeys(mainKey);
