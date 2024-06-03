@@ -330,9 +330,14 @@ int main(int argc, char* argv[]) {
 			std::cin >> testPath;
 			if (checkFile(testPath))
 			{
+				std::ifstream in(testPath, std::ios::binary);
+				in.read((char*)key.bytes, 32);
 				break;
 			}
 		}
+
+		
+		
 
 		std::cout << "Введите вектор инициализации: ";
 		std::cin >> iV;
