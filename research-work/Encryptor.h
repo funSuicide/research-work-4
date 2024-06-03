@@ -44,7 +44,7 @@ public:
 		size_t blockIndex = gCount / sizeof(typeVector);
 		size_t shiftIndex = gCount % sizeof(typeVector);
 
-		if (shiftIndex == 0) ++blockIndex;
+		//if (shiftIndex == 0) ++blockIndex;
 
 		for (size_t i = shiftIndex; i < sizeof(typeVector); ++i) {
 			src[blockIndex].bytes[i] = sizeof(typeVector) - shiftIndex;
