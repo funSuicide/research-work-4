@@ -388,12 +388,12 @@ int main(int argc, char* argv[]) {
 	}
 	case 2:
 	{
-		//Encryptor<Kuznechik, byteVectorKuznechik> K2(key);
+		Encryptor<Kuznechik, byteVectorKuznechik> K2(key);
 
 		if (mode == 1)
 		{
 			auto begin = std::chrono::steady_clock::now();
-			//K2.encrypt(inputPath, outputPath);
+			K2.encrypt(inputPath, outputPath, iV);
 			auto end = std::chrono::steady_clock::now();
 			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 			std::cout << "Общее время шифрования: " << time.count() << " ms" << std::endl;
@@ -401,7 +401,7 @@ int main(int argc, char* argv[]) {
 		else if (mode == 0)
 		{
 			auto begin = std::chrono::steady_clock::now();
-			//K2.decrypt(inputPath, outputPath);
+			K2.decrypt(inputPath, outputPath, iV);
 			auto end = std::chrono::steady_clock::now();
 			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 			std::cout << "Общее время дешифрования: " << time.count() << " ms" << std::endl;
