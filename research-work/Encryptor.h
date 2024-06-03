@@ -17,6 +17,7 @@ class Encryptor {
 public:
 	Encryptor(const key& key) : cryptoAlgorithm(key) {};
 
+	/*
 	size_t paddingPKCS(std::vector<typeVector>& src, size_t gCount) const {
 		size_t blockIndex = gCount / sizeof(typeVector);
 		size_t shiftIndex = gCount % sizeof(typeVector);
@@ -33,11 +34,12 @@ public:
 		/*
 		for (size_t i = shiftIndex; i < sizeof(typeVector); ++i) {
 			src[blockIndex].bytes[i] = sizeof(typeVector) - shiftIndex;
-		}*/
+		}
 		return blockIndex;
 	}
+	*/
 
-	/*
+	
 	size_t paddingPKCS(std::vector<typeVector>& src, size_t gCount) const {
 		size_t blockIndex = gCount / sizeof(typeVector);
 		size_t shiftIndex = gCount % sizeof(typeVector);
@@ -50,7 +52,7 @@ public:
 		return blockIndex;
 	}
 
-	*/
+	
 
 	void encrypt(const std::string& pathOne, const std::string& pathTwo, uint64_t iV) const {
 		std::ifstream in(pathOne, std::ios::binary);
