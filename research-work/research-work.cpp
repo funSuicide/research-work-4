@@ -336,9 +336,6 @@ int main(int argc, char* argv[]) {
 			}
 		}
 
-		
-		
-
 		std::cout << "Введите вектор инициализации: ";
 		std::cin >> iV;
 

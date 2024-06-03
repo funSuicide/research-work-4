@@ -113,7 +113,7 @@ public:
 				//cryptoAlgorithm.processData(buffer, result, 0);
 
 
-				//writeSizeBytes -= result[readBlocks - 1].bytes[sizeof(typeVector) - 1];
+				writeSizeBytes -= result[readBlocks - 1].bytes[sizeof(typeVector) - 1];
 
 				out.write((const char*)&result[0], writeSizeBytes);
 			}
