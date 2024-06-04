@@ -6,6 +6,7 @@
 #include "testData.hpp"
 #include "Kuznechik.h"
 #include "MagmaAVX512.h"
+#include "KuznechikAVX512.hpp"
 #include <chrono>
 #include <string_view>
 #include <algorithm>
@@ -21,56 +22,75 @@ bool checkFile(const std::string& path)
 	return std::filesystem::exists(path);
 }
 
+enum Mode {
+	ENCRYPT,
+	DECRYPT,
+};
+
+enum Algorithm {
+	KUZNECHIK_AVX2,
+	KUZNECHIK_AVX512,
+	MAGMA_AVX2,
+	MAGMA_AVX512,
+	MAGMA_AVX512_REG,
+};
+
+template <typename alg, typename typeVector>
+void fileOperation(const std::string& inputPath, const std::string& outputPath, Mode mode, uint32_t iV, const Encryptor<alg, typeVector>& E)
+{
+	if (mode == ENCRYPT)
+	{
+		auto begin = std::chrono::steady_clock::now();
+		E.encrypt(inputPath, outputPath, iV);
+		auto end = std::chrono::steady_clock::now();
+		auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+		std::cout << "Общее время шифрования: " << time.count() << " ms" << std::endl;
+	}
+	else 
+	{
+		auto begin = std::chrono::steady_clock::now();
+		E.decrypt(inputPath, outputPath, iV);
+		auto end = std::chrono::steady_clock::now();
+		auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+		std::cout << "Общее время шифрования: " << time.count() << " ms" << std::endl;
+	}
+}
+
 int main(int argc, char* argv[]) {
-	int algorihm = 0;
-	int mode = 0;
-
-
-	// use this instead of constants
-	enum Mode {
-		ENCRYPT,
-		DECRYPT,
-	};
-
-	enum Algorithm {
-		KUZNYECHIK_AVX2,
-		KUZNYECHIK_AVX512,
-		MAGMA_AV2,
-		MAGMA_AV512,
-		MAGMA_AV512_REG,
-	};
+	Mode mode;
+	Algorithm alg;
 
 	setlocale(LC_ALL, "");
 	if (argc != 3) 
 	{
 		std::cout << "Некорректное количество параметров." << std::endl;
-		std::cout << "Используйте: " << argv[0] << " -[алгоритм шифрования] -[шифрование/дешифрование/тест скорости]" << std::endl;
+		std::cout << "Используйте: " << argv[0] << " -[алгоритм шифрования] -[шифрование/дешифрование]" << std::endl;
 		exit(0);
 	}
 	if (strcmp(argv[1], "-mavx2") == 0)
 	{
-		algorihm = 1;
-		std::cout << "Выбран алгоритм МАГМА для случая AVX2." << std::endl;
+		alg = MAGMA_AVX2;
+		std::cout << "Выбран алгоритм Магма для случая AVX2." << std::endl;
 	}
 	else if (strcmp(argv[1], "-kavx2") == 0)
 	{
-		algorihm = 2;
-		std::cout << "Выбран алгоритм КУЗНЕЧИК для случая AVX2." << std::endl;
+		alg = KUZNECHIK_AVX2;
+		std::cout << "Выбран алгоритм Кузнечик для случая AVX2." << std::endl;
 	}
 	else if (strcmp(argv[1], "-kavx512") == 0)
 	{
-		algorihm = 3;
-		std::cout << "Выбран алгоритм КУЗНЕЧИК для случая AVX512." << std::endl;
+		alg = KUZNECHIK_AVX512;
+		std::cout << "Выбран алгоритм Кузнечик для случая AVX512." << std::endl;
 	}
 	else if (strcmp(argv[1], "-mavx512") == 0)
 	{
-		algorihm = 4;
-		std::cout << "Выбран алгоритм МАГМА для случая AVX512 (таблица замен в памяти)." << std::endl;
+		alg = MAGMA_AVX512;
+		std::cout << "Выбран алгоритм Магма для случая AVX512 (таблица замен в памяти)." << std::endl;
 	}
 	else if (strcmp(argv[1], "-mavx512reg") == 0)
 	{
-		algorihm = 5;
-		std::cout << "Выбран алгоритм МАГМА для случая AVX512 (таблица замен в регистрах)." << std::endl;
+		alg = MAGMA_AVX512_REG;
+		std::cout << "Выбран алгоритм Магма для случая AVX512 (таблица замен в регистрах)." << std::endl;
 	}
 	else
 	{
@@ -79,19 +99,15 @@ int main(int argc, char* argv[]) {
 	}
 	if (strcmp(argv[2], "-e") == 0)
 	{
-		mode = 1;
+		mode = ENCRYPT;
 	}
 	else if (strcmp(argv[2], "-d") == 0)
 	{
-		mode = 0;
-	}
-	else if (strcmp(argv[2], "-test") == 0)
-	{
-		mode = 2;
+		mode = DECRYPT;
 	}
 	else
 	{
-		std::cout << "Некорректно задан режим работы алгоритма. Используйте: -e, -d, -test" << std::endl;
+		std::cout << "Некорректно задан режим работы алгоритма. Используйте: -e, -d" << std::endl;
 		exit(0);
 	}
 
@@ -135,109 +151,35 @@ int main(int argc, char* argv[]) {
 
 	}
 	
-	switch (algorihm)
+	switch (alg)
 	{
-	case 1:
+	case MAGMA_AVX2:
 	{
-		//Encryptor<Magma, byteVectorMagma> M2(key);
-		// Make a template function
 		Encryptor<MagmaAVX2, byteVectorMagma> MAVX2(key);
-		if (mode == 1)
-		{
-			auto begin = std::chrono::steady_clock::now();
-			MAVX2.encrypt(inputPath, outputPath, iV);
-			auto end = std::chrono::steady_clock::now();
-			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-			std::cout << "Общее время шифрования: " << time.count() << " ms" << std::endl;
-		}
-		else if (mode == 0)
-		{
-			auto begin = std::chrono::steady_clock::now();
-			MAVX2.decrypt(inputPath, outputPath, iV);
-			auto end = std::chrono::steady_clock::now();
-			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-			std::cout << "Общее время дешифрования: " << time.count() << " ms" << std::endl;
-		}
-	}
-	case 2:
-	{
-		Encryptor<Kuznechik, byteVectorKuznechik> K2(key);
-		if (mode == 1)
-		{
-			auto begin = std::chrono::steady_clock::now();
-			K2.encrypt(inputPath, outputPath, iV);
-			auto end = std::chrono::steady_clock::now();
-			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-			std::cout << "Общее время шифрования: " << time.count() << " ms" << std::endl;
-		}
-		else if (mode == 0)
-		{
-			auto begin = std::chrono::steady_clock::now();
-			K2.decrypt(inputPath, outputPath, iV);
-			auto end = std::chrono::steady_clock::now();
-			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-			std::cout << "Общее время дешифрования: " << time.count() << " ms" << std::endl;
-		}
+		fileOperation(inputPath, outputPath, mode, iV, MAVX2);
 		break;
 	}
-	case 3: 
+	case KUZNECHIK_AVX2:
 	{
-		if (mode == 1)
-		{
-			auto begin = std::chrono::steady_clock::now();
-			//K2.encrypt(inputPath, outputPath);
-			auto end = std::chrono::steady_clock::now();
-			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-			std::cout << "Общее время шифрования: " << time.count() << " ms" << std::endl;
-		}
-		else if (mode == 0)
-		{
-			auto begin = std::chrono::steady_clock::now();
-			//K2.decrypt(inputPath, outputPath);
-			auto end = std::chrono::steady_clock::now();
-			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-			std::cout << "Общее время дешифрования: " << time.count() << " ms" << std::endl;
-		}
+		Encryptor<Kuznechik, byteVectorKuznechik> KAVX2(key);
+		fileOperation(inputPath, outputPath, mode, iV, KAVX2);
 		break;
 	}
-	case 4:
+	case KUZNECHIK_AVX512: 
 	{
-		if (mode == 1)
-		{
-			auto begin = std::chrono::steady_clock::now();
-			//K2.encrypt(inputPath, outputPath);
-			auto end = std::chrono::steady_clock::now();
-			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-			std::cout << "Общее время шифрования: " << time.count() << " ms" << std::endl;
-		}
-		else if (mode == 0)
-		{
-			auto begin = std::chrono::steady_clock::now();
-			//K2.decrypt(inputPath, outputPath);
-			auto end = std::chrono::steady_clock::now();
-			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-			std::cout << "Общее время дешифрования: " << time.count() << " ms" << std::endl;
-		}
+		Encryptor<KuznechikAVX512, byteVectorKuznechik> KAVX512(key);
+		fileOperation(inputPath, outputPath, mode, iV, KAVX512);
 		break;
 	}
-	case 5:
+	case MAGMA_AVX512:
 	{
-if (mode == 1)
-		{
-			auto begin = std::chrono::steady_clock::now();
-			//K2.encrypt(inputPath, outputPath);
-			auto end = std::chrono::steady_clock::now();
-			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-			std::cout << "Общее время шифрования: " << time.count() << " ms" << std::endl;
-		}
-		else if (mode == 0)
-		{
-			auto begin = std::chrono::steady_clock::now();
-			//K2.decrypt(inputPath, outputPath);
-			auto end = std::chrono::steady_clock::now();
-			auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-			std::cout << "Общее время дешифрования: " << time.count() << " ms" << std::endl;
-		}
+		Encryptor<MagmaAVX512, byteVectorMagma> MAVX512(key);
+		fileOperation(inputPath, outputPath, mode, iV, MAVX512);
+		break;
+	}
+	case MAGMA_AVX512_REG:
+	{
+		std::cout << "ждем" << std::endl;
 		break;
 	}
 	default:
