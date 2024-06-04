@@ -336,7 +336,9 @@ static inline __m256i getStartGammaBlocksKuznechik(uint64_t iV)
 {
 	uint64_t tmp[4];
 	tmp[0] = iV;
+	tmp[1] = 0x00;
 	tmp[3] = iV + 0x01;
+	tmp[4] = 0x00;
 	return _mm256_loadu_si256((const __m256i*)tmp);
 }
 

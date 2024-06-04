@@ -389,7 +389,6 @@ int main(int argc, char* argv[]) {
 	case 2:
 	{
 		Encryptor<Kuznechik, byteVectorKuznechik> K2(key);
-
 		if (mode == 1)
 		{
 			auto begin = std::chrono::steady_clock::now();

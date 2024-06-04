@@ -42,7 +42,7 @@ public:
 	
 	size_t paddingPKCS(std::vector<typeVector>& src, size_t gCount) const {
 		size_t blockIndex = gCount / sizeof(typeVector);
-		size_t shiftIndex = gCount % sizeof(typeVector);
+		size_t shiftIndex = gCount % sizeof(typeVector);if
 
 		//if (shiftIndex == 0) ++blockIndex;
 
@@ -50,7 +50,7 @@ public:
 			src[blockIndex].bytes[i] = sizeof(typeVector) - shiftIndex;
 		}
 		return blockIndex;
-	}
+	}_mm256_add_epi32
 
 	
 
