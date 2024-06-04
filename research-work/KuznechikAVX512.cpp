@@ -38,7 +38,7 @@ static constexpr uint8_t sTable[256] = {
 
 static constexpr uint8_t lVector[16] = { 1, 148, 32, 133, 16, 194, 192, 1, 251, 1, 192, 194, 16, 133, 32, 148 };
 
-uint8_t multiplicationGalua(uint8_t first, uint8_t second) {
+uint8_t multiplicationGaluaAVX512(uint8_t first, uint8_t second) {
 	uint8_t result = 0;
 	uint8_t hiBit;
 	for (int i = 0; i < 8;i++) {
@@ -55,13 +55,13 @@ uint8_t multiplicationGalua(uint8_t first, uint8_t second) {
 	return result;
 }
 
-byteVectorKuznechik xOR(const byteVectorKuznechik src1, const byteVectorKuznechik src2) {
+byteVectorKuznechik xORAVX512(const byteVectorKuznechik src1, const byteVectorKuznechik src2) {
 	halfVectorKuznechik lo = src1.halfsData.lo.halfVector ^ src2.halfsData.lo.halfVector;
 	halfVectorKuznechik hi = src1.halfsData.hi.halfVector ^ src2.halfsData.hi.halfVector;
 	return byteVectorKuznechik(lo, hi);
 }
 
-byteVectorKuznechik transformationS(const byteVectorKuznechik src) {
+byteVectorKuznechik transformationSAVX512(const byteVectorKuznechik src) {
 	byteVectorKuznechik tmp{};
 	for (size_t i = 0; i < 16; i++) {
 		tmp.bytes[i] = sTable[src.bytes[i]];
@@ -69,7 +69,7 @@ byteVectorKuznechik transformationS(const byteVectorKuznechik src) {
 	return tmp;
 }
 
-byteVectorKuznechik transformationR(const byteVectorKuznechik src) {
+byteVectorKuznechik transformationRAVX512(const byteVectorKuznechik src) {
 	uint8_t a_15 = 0;
 	static byteVectorKuznechik internal = { 0, 0 };
 	for (int i = 15; i >= 0; i--) {
@@ -81,70 +81,70 @@ byteVectorKuznechik transformationR(const byteVectorKuznechik src) {
 		{
 			internal.bytes[i - 1] = src.bytes[i];
 		}
-		a_15 ^= multiplicationGalua(src.bytes[i], lVector[i]);
+		a_15 ^= multiplicationGaluaAVX512(src.bytes[i], lVector[i]);
 	}
 	internal.bytes[15] = a_15;
 	return internal;
 }
 
-byteVectorKuznechik transformaionL(const byteVectorKuznechik& inData) {
+byteVectorKuznechik transformaionLAVX512(const byteVectorKuznechik& inData) {
 	static byteVectorKuznechik tmp;
 	std::copy_n(inData.bytes, 16, tmp.bytes);
 	for (int i = 0; i < 16; i++) {
-		tmp = transformationR(tmp);
+		tmp = transformationRAVX512(tmp);
 	}
 	return tmp;
 }
 
-byteVectorKuznechik transformationF(const byteVectorKuznechik src, const byteVectorKuznechik cons) {
+byteVectorKuznechik transformationFAVX512(const byteVectorKuznechik src, const byteVectorKuznechik cons) {
 	byteVectorKuznechik tmp;
-	tmp = xOR(src, cons);
-	tmp = transformationS(tmp);
+	tmp = xORAVX512(src, cons);
+	tmp = transformationSAVX512(tmp);
 	byteVectorKuznechik d;
-	d = transformaionL(tmp);
+	d = transformaionLAVX512(tmp);
 	return d;
 }
 
 
-std::array <byteVectorKuznechik, 32> getConstTableKuz() {
-	std::array <byteVectorKuznechik, 32> constTable;
+std::array <byteVectorKuznechik, 32> getconstTableAVX512KuzAVX512() {
+	std::array <byteVectorKuznechik, 32> constTableAVX512;
 	byteVectorKuznechik numberIter = { halfVectorKuznechik(0), halfVectorKuznechik(0)};
 	numberIter.bytes[0] += 0x01;
 	for (int i = 0; i < 32; i++) {
 		byteVectorKuznechik result = { 0, 0 };
-		result = transformaionL(numberIter);
-		constTable[i] = result;
+		result = transformaionLAVX512(numberIter);
+		constTableAVX512[i] = result;
 		numberIter.bytes[0] += 0x01;
 	}
-	return constTable;
+	return constTableAVX512;
 }
 
 
-std::array<std::array<byteVectorKuznechik, 256>, 16> getStartTable() {
-	std::array<std::array<byteVectorKuznechik, 256>, 16> startByteT;
+std::array<std::array<byteVectorKuznechik, 256>, 16> getStartTableAVX512() {
+	std::array<std::array<byteVectorKuznechik, 256>, 16> startByteTAVX512;
 	for (int j = 0; j < 16; ++j) {
 		byteVectorKuznechik tmp{};
 		for (int i = 0; i < 256; i++) {
 
-			byteVectorKuznechik c = transformationS(tmp);
+			byteVectorKuznechik c = transformationSAVX512(tmp);
 
 			for (size_t q = 0; q < 16; ++q)
 			{
 				if (q != j) c.bytes[q] = 0;
 			}
 			
-			byteVectorKuznechik d = transformaionL(c);
+			byteVectorKuznechik d = transformaionLAVX512(c);
 
-			startByteT[j][i] = d;
+			startByteTAVX512[j][i] = d;
 			tmp.bytes[j] += 0x01;
 		}
 	}
-	return startByteT;
+	return startByteTAVX512;
 }
 
-std::array<std::array<byteVectorKuznechik, 256>, 16> startByteT = getStartTable();
+std::array<std::array<byteVectorKuznechik, 256>, 16> startByteTAVX512 = getStartTableAVX512();
 
-std::array <byteVectorKuznechik, 32> constTable = getConstTableKuz();
+std::array <byteVectorKuznechik, 32> constTableAVX512 = getconstTableAVX512KuzAVX512();
 
 void getRoundKeys(const key& mainKey, byteVectorKuznechik(&roundKeysKuznechik)[10][2]) {
 	uint8_t lo[16];
@@ -164,8 +164,8 @@ void getRoundKeys(const key& mainKey, byteVectorKuznechik(&roundKeysKuznechik)[1
 		for (size_t j = 0; j < 8; j++) {
 			byteVectorKuznechik tmp2 = leftPart;
 			leftPart = rightPart;
-			byteVectorKuznechik tmp = transformationF(rightPart, constTable[(8 * (i-1) + j)]);
-			rightPart = xOR(tmp, tmp2);
+			byteVectorKuznechik tmp = transformationFAVX512(rightPart, constTableAVX512[(8 * (i-1) + j)]);
+			rightPart = xORAVX512(tmp, tmp2);
 			iter++;
 		}
 		roundKeysKuznechik[numberKey][0] = rightPart;
@@ -184,25 +184,25 @@ static inline __m512i encryptBlockAVX512(__m512i blocks, const byteVectorKuznech
 	for (size_t i = 0; i < 9; ++i) {
 		__m256i tmpKeys = _mm256_loadu_si256((const __m256i*)roundKeysKuznechik[i]);
 		__m512i keys = _mm512_broadcast_i64x4(tmpKeys);
-		result = _mm512_xor_si512(result, keys);
+		result = _mm512_xORAVX512_si512(result, keys);
 		_mm512_store_epi32((__m512i*)t, result);
 		__m512i tmp = _mm512_setzero_si512();
 		for (size_t j = 0; j < 16; j++) {
 
-			__m128i tmp1 = _mm_loadu_si128((const __m128i*) & startByteT[j][t[0].bytes[j]]);
-			__m128i tmp2 = _mm_loadu_si128((const __m128i*) & startByteT[j][t[1].bytes[j]]);
-			__m128i tmp3 = _mm_loadu_si128((const __m128i*) & startByteT[j][t[2].bytes[j]]);
-			__m128i tmp4 = _mm_loadu_si128((const __m128i*) & startByteT[j][t[3].bytes[j]]);
+			__m128i tmp1 = _mm_loadu_si128((const __m128i*) & startByteTAVX512[j][t[0].bytes[j]]);
+			__m128i tmp2 = _mm_loadu_si128((const __m128i*) & startByteTAVX512[j][t[1].bytes[j]]);
+			__m128i tmp3 = _mm_loadu_si128((const __m128i*) & startByteTAVX512[j][t[2].bytes[j]]);
+			__m128i tmp4 = _mm_loadu_si128((const __m128i*) & startByteTAVX512[j][t[3].bytes[j]]);
 
 			__m512i valuesAVX = _mm512_inserti64x2(_mm512_inserti64x2(_mm512_inserti64x2(_mm512_castsi128_si512(tmp1), tmp2, 0x01), tmp3, 0x02), tmp4, 0x03);
 			
-			tmp = _mm512_xor_si512(tmp, valuesAVX);
+			tmp = _mm512_xORAVX512_si512(tmp, valuesAVX);
 		}
 		result = tmp; 
 	}
 	__m256i tmpLastKeys = _mm256_loadu_si256((const __m256i*)roundKeysKuznechik[9]);
 	__m512i lastKeys = _mm512_broadcast_i64x4(tmpLastKeys);
-	result = _mm512_xor_si512(result, lastKeys);
+	result = _mm512_xORAVX512_si512(result, lastKeys);
 	return result;
 }
 
@@ -243,7 +243,7 @@ static inline __m512i getStartGammaBlocksKuznechikAVX512(uint64_t iV)
 
 		result = encryptBlockAVX512(gammalocks, this->roundKeysKuznechik);
 
-		result = _mm512_xor_si512(result, gammalocks);
+		result = _mm512_xORAVX512_si512(result, gammalocks);
 
 		_mm512_storeu_si512((__m512i*)(dest.data() + b), result);
 
@@ -254,5 +254,5 @@ static inline __m512i getStartGammaBlocksKuznechikAVX512(uint64_t iV)
 
 KuznechikAVX512::KuznechikAVX512(const key& mainKey) {
 	getRoundKeys(mainKey, this->roundKeysKuznechik);
-	getConstTableKuz();
+	getconstTableAVX512KuzAVX512();
 }
