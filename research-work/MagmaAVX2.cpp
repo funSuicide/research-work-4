@@ -1,17 +1,6 @@
 #include "MagmaAVX2.h"
-#include <iostream>
-#include "table4X256.hpp"
-#include "table2X65536.hpp"
 
-halfVectorMagma roundKeys[8][8];
-
-void expandKeys(const key& key);
-
-MagmaAVX2::MagmaAVX2(const key& key) {
-	expandKeys(key);
-}
-
-void expandKeys(const key& key)
+void expandKeys(const key& key, halfVectorMagma(&roundKeys)[8][8])
 {
 	for (int i = 0; i < 8; ++i)
 	{
@@ -24,11 +13,15 @@ void expandKeys(const key& key)
 
 static inline __m256i getStartGammaBlocks(uint32_t iV)
 {
-	uint64_t tmp[4];
+	uint32_t tmp[8];
 	tmp[0] = iV;
-	tmp[1] = iV + 0x01;
-	tmp[2] = iV + 0x02;
-	tmp[3] = iV + 0x03;
+	tmp[1] = 0x00;
+	tmp[2] = iV + 0x01;
+	tmp[3] = 0x00;
+	tmp[4] = iV + 0x02;
+	tmp[5] = 0x00;
+	tmp[6] = iV + 0x03;
+	tmp[7] = 0x00;
 	return _mm256_loadu_si256((const __m256i*)tmp);
 }
 
@@ -73,14 +66,14 @@ static inline __m256i tTransofrmAVX2(__m256i data)
 	return result;
 }
 
-__m256i cyclicShift11(__m256i data)
+static inline __m256i cyclicShift11(__m256i data)
 {
 	__m256i resultShift = _mm256_slli_epi32(data, 11);
 	__m256i resultShift2 = _mm256_srli_epi32(data, 21);
 	return _mm256_xor_si256(resultShift, resultShift2);
 }
 
-__m256i gTransformationAVX(halfVectorMagma* roundKeyAddr, const __m256i data)
+static inline __m256i gTransformationAVX(halfVectorMagma* roundKeyAddr, const __m256i data)
 {
 	__m256i vectorKey = _mm256_loadu_si256((const __m256i*)roundKeyAddr);
 	__m256i result = _mm256_add_epi32(vectorKey, data);
@@ -128,6 +121,10 @@ static inline void decryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
 	hiHalfs = tmp;
 }
 
+MagmaAVX2::MagmaAVX2(const key& key) {
+	expandKeys(key);
+}
+
 void MagmaAVX2::processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
 {
 	const int blockMask = 0xB1;
@@ -166,7 +163,6 @@ void MagmaAVX2::processData(std::span<const byteVectorMagma> src, std::span<byte
 
 void MagmaAVX2::processDataGamma(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, uint64_t iV) const
 {
-
 	const int blockMask = 0xB1;
 	const int hiHalfsMask = 0x55; 
 	const int loHalfsMask = 0xAA;
@@ -175,9 +171,6 @@ void MagmaAVX2::processDataGamma(std::span<const byteVectorMagma> src, std::span
 
 	__m256i gammaBlocks1 = getStartGammaBlocks(iV);
 	__m256i gammaBlocks2 = _mm256_add_epi32(gammaBlocks1, diffGammaReg);
-
-	//__m256i gammaBlocks1 = _mm256_setzero_si256();
-	//__m256i gammaBlocks2 = _mm256_setzero_si256();
 
 	for (size_t b = 0; b < src.size(); b += 8)
 	{
@@ -207,7 +200,5 @@ void MagmaAVX2::processDataGamma(std::span<const byteVectorMagma> src, std::span
 		gammaBlocks1 = _mm256_add_epi32(gammaBlocks1, diffGammaReg);
 		gammaBlocks2 = _mm256_add_epi32(gammaBlocks2, diffGammaReg);
 	}
-
-	
 }
 
