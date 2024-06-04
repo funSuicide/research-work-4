@@ -1,6 +1,6 @@
 #include "MagmaAVX2.hpp"
 
-void expandKeys(const key& key, halfVectorMagma(&roundKeys)[8][8])
+static inline void expandKeys(const key& key, halfVectorMagma(&roundKeys)[8][8])
 {
 	for (int i = 0; i < 8; ++i)
 	{
