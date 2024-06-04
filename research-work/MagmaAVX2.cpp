@@ -91,7 +91,7 @@ static inline void transformationGaVX(__m256i& loHalfs, __m256i& hiHalfs, halfVe
 	loHalfs = tmp;
 }
 
-static inline void encryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
+static inline void encryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs, const halfVectorMagma(&roundKeys)[8][8])
 {
 	for (size_t i = 0; i < 24; i++)
 	{
@@ -106,7 +106,7 @@ static inline void encryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
 	hiHalfs = tmp;
 }
 
-static inline void decryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
+static inline void decryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs, const halfVectorMagma(&roundKeys)[8][8])
 {
 	for (size_t i = 0; i < 8; i++)
 	{
@@ -122,7 +122,7 @@ static inline void decryptEightBlocks(__m256i& loHalfs, __m256i& hiHalfs)
 }
 
 MagmaAVX2::MagmaAVX2(const key& key) {
-	expandKeys(key);
+	expandKeys(key, this->roundKeys);
 }
 
 void MagmaAVX2::processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
