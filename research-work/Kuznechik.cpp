@@ -288,7 +288,7 @@ static inline __m256i getStartGammaBlocksKuznechik(uint64_t iV)
 
 		result = encryptBlockAVX2(gammalocks);
 
-		result = _mm256_xor_si256(result, gammalocks);
+		result = _mm256_xor_si256(result, blocks);
 
 		_mm256_storeu_si256((__m256i*)(dest.data() + b), result);
 
