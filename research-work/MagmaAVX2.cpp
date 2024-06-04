@@ -144,10 +144,10 @@ void MagmaAVX2::processData(std::span<const byteVectorMagma> src, std::span<byte
 
 		if (en)
 		{
-			encryptEightBlocks(loHalfs, hiHalfs);
+			encryptEightBlocks(loHalfs, hiHalfs, this->roundKeys);
 		}
 		else {
-			decryptEightBlocks(loHalfs, hiHalfs);
+			decryptEightBlocks(loHalfs, hiHalfs, this->roundKeys);
 		}
 
 		__m256i tmp = _mm256_shuffle_epi32(hiHalfs, blockMask);
@@ -183,7 +183,7 @@ void MagmaAVX2::processDataGamma(std::span<const byteVectorMagma> src, std::span
 		__m256i loHalfs = _mm256_blend_epi32(gammaBlocks1, blocks2Tmp, loHalfsMask);
 		__m256i hiHalfs = _mm256_blend_epi32(gammaBlocks2, blocks1Tmp, hiHalfsMask);
 
-		encryptEightBlocks(loHalfs, hiHalfs);
+		encryptEightBlocks(loHalfs, hiHalfs, this->roundKeys);
 
 		__m256i tmp = _mm256_shuffle_epi32(hiHalfs, blockMask);
 		__m256i tmp2 = _mm256_shuffle_epi32(loHalfs, blockMask);
