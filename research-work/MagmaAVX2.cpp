@@ -164,7 +164,7 @@ void MagmaAVX2::processData(std::span<const byteVectorMagma> src, std::span<byte
 	}
 }
 
-void MagmaAVX2::processDataGamma(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en, uint64_t iV) const
+void MagmaAVX2::processDataGamma(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, uint64_t iV) const
 {
 
 	const int blockMask = 0xB1;

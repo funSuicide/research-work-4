@@ -173,9 +173,10 @@ int main(int argc, char* argv[]) {
 	}
 	case MAGMA_AVX512:
 	{
+		/*
 		Encryptor<MagmaAVX512, byteVectorMagma> MAVX512(key);
 		fileOperation(inputPath, outputPath, mode, iV, MAVX512);
-		break;
+		break;*/
 	}
 	case MAGMA_AVX512_REG:
 	{

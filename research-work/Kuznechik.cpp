@@ -275,7 +275,7 @@ static inline __m256i getStartGammaBlocksKuznechik(uint64_t iV)
 	return _mm256_loadu_si256((const __m256i*)tmp);
 }
 
- void Kuznechik::processDataGamma(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en, uint64_t iV) const
+ void Kuznechik::processDataGamma(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, uint64_t iV) const
  {
 	uint64_t diffGamma[4] = {0x02, 0x00, 0x02, 0x00};
 	__m256i diffGammaReg =  _mm256_loadu_si256((const __m256i*)diffGamma);
