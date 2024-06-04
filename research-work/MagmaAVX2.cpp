@@ -73,7 +73,7 @@ static inline __m256i cyclicShift11(__m256i data)
 	return _mm256_xor_si256(resultShift, resultShift2);
 }
 
-static inline __m256i gTransformationAVX(halfVectorMagma* roundKeyAddr, const __m256i data)
+static inline __m256i gTransformationAVX(const halfVectorMagma* roundKeyAddr, const __m256i data)
 {
 	__m256i vectorKey = _mm256_loadu_si256((const __m256i*)roundKeyAddr);
 	__m256i result = _mm256_add_epi32(vectorKey, data);
@@ -83,7 +83,7 @@ static inline __m256i gTransformationAVX(halfVectorMagma* roundKeyAddr, const __
 	return result;
 }
 
-static inline void transformationGaVX(__m256i& loHalfs, __m256i& hiHalfs, halfVectorMagma* roundKeyAddr) 
+static inline void transformationGaVX(__m256i& loHalfs, __m256i& hiHalfs, const halfVectorMagma* roundKeyAddr) 
 {
 	__m256i gResult = gTransformationAVX(roundKeyAddr, loHalfs);
 	__m256i tmp = _mm256_xor_si256(invBytes(gResult), hiHalfs);
