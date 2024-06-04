@@ -54,13 +54,11 @@ public:
 			if (in.eof()) {
 				size_t newSize = paddingPKCS(buffer, readSize);
 
-				cryptoAlgorithm.processDataGamma(buffer, result, 1, iV);
-				//cryptoAlgorithm.processData(buffer, result, 1);
+				cryptoAlgorithm.processDataGamma(buffer, result, iV);
 				out.write((const char*)&result[0], (newSize + 1) * sizeof(typeVector));
 			}
 			else {
-				cryptoAlgorithm.processDataGamma(buffer, result, 1, iV);
-				//cryptoAlgorithm.processData(buffer, result, 1);
+				cryptoAlgorithm.processDataGamma(buffer, result, iV);
 				out.write((const char*)&result[0], BLOCK_BUFFER_SIZE * sizeof(typeVector));
 			}
 		}
@@ -88,8 +86,7 @@ public:
 			size_t writeSizeBytes = readSize;
 
 			if (in.eof()) {
-				cryptoAlgorithm.processDataGamma(buffer, result, 0, iV);
-				//cryptoAlgorithm.processData(buffer, result, 0);
+				cryptoAlgorithm.processDataGamma(buffer, result, iV);
 
 
 				writeSizeBytes -= result[readBlocks - 1].bytes[sizeof(typeVector) - 1];
@@ -98,8 +95,7 @@ public:
 			}
 			else
 			{
-				cryptoAlgorithm.processDataGamma(buffer, result, 0, iV);
-				//cryptoAlgorithm.processData(buffer, result, 0);
+				cryptoAlgorithm.processDataGamma(buffer, result, iV);
 
 				out.write((const char*)&result[0], BLOCK_BUFFER_SIZE * sizeof(typeVector));
 			}
