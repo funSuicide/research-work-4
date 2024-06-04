@@ -17,32 +17,11 @@ class Encryptor {
 public:
 	Encryptor(const key& key) : cryptoAlgorithm(key) {};
 
-	/*
-	size_t paddingPKCS(std::vector<typeVector>& src, size_t gCount) const {
-		size_t blockIndex = gCount / sizeof(typeVector);
-		size_t shiftIndex = gCount % sizeof(typeVector);
-
-		while(blockIndex %8 !=0)
-		{
-			for (size_t i = shiftIndex; i < sizeof(typeVector); ++i) {
-				src[blockIndex].bytes[i] = sizeof(typeVector) - shiftIndex;
-				blockIndex++;
-			}
-		}
-
-		if (shiftIndex == 0) ++blockIndex;
-		/*
-		for (size_t i = shiftIndex; i < sizeof(typeVector); ++i) {
-			src[blockIndex].bytes[i] = sizeof(typeVector) - shiftIndex;
-		}
-		return blockIndex;
-	}
-	*/
 
 	
 	size_t paddingPKCS(std::vector<typeVector>& src, size_t gCount) const {
 		size_t blockIndex = gCount / sizeof(typeVector);
-		size_t shiftIndex = gCount % sizeof(typeVector);if
+		size_t shiftIndex = gCount % sizeof(typeVector);
 
 		//if (shiftIndex == 0) ++blockIndex;
 
@@ -50,7 +29,7 @@ public:
 			src[blockIndex].bytes[i] = sizeof(typeVector) - shiftIndex;
 		}
 		return blockIndex;
-	}_mm256_add_epi32
+	}
 
 	
 
