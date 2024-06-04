@@ -184,7 +184,7 @@ static inline __m512i encryptBlockAVX512(__m512i blocks, const byteVectorKuznech
 	for (size_t i = 0; i < 9; ++i) {
 		__m256i tmpKeys = _mm256_loadu_si256((const __m256i*)roundKeysKuznechik[i]);
 		__m512i keys = _mm512_broadcast_i64x4(tmpKeys);
-		result = _mm512_xORAVX512_si512(result, keys);
+		result = _mm512_xor_si512(result, keys);
 		_mm512_store_epi32((__m512i*)t, result);
 		__m512i tmp = _mm512_setzero_si512();
 		for (size_t j = 0; j < 16; j++) {
@@ -196,13 +196,13 @@ static inline __m512i encryptBlockAVX512(__m512i blocks, const byteVectorKuznech
 
 			__m512i valuesAVX = _mm512_inserti64x2(_mm512_inserti64x2(_mm512_inserti64x2(_mm512_castsi128_si512(tmp1), tmp2, 0x01), tmp3, 0x02), tmp4, 0x03);
 			
-			tmp = _mm512_xORAVX512_si512(tmp, valuesAVX);
+			tmp = _mm512_xor_si512(tmp, valuesAVX);
 		}
 		result = tmp; 
 	}
 	__m256i tmpLastKeys = _mm256_loadu_si256((const __m256i*)roundKeysKuznechik[9]);
 	__m512i lastKeys = _mm512_broadcast_i64x4(tmpLastKeys);
-	result = _mm512_xORAVX512_si512(result, lastKeys);
+	result = _mm512_xor_si512(result, lastKeys);
 	return result;
 }
 
@@ -243,7 +243,7 @@ static inline __m512i getStartGammaBlocksKuznechikAVX512(uint64_t iV)
 
 		result = encryptBlockAVX512(gammalocks, this->roundKeysKuznechik);
 
-		result = _mm512_xORAVX512_si512(result, gammalocks);
+		result = _mm512_xor_si512(result, gammalocks);
 
 		_mm512_storeu_si512((__m512i*)(dest.data() + b), result);
 
