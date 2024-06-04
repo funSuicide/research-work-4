@@ -241,7 +241,7 @@ static inline __m512i getStartGammaBlocksKuznechikAVX512(uint64_t iV)
 
 		__m512i result = _mm512_setzero_si512();
 
-		result = encryptBlockAVX512(gammalocks);
+		result = encryptBlockAVX512(gammalocks, this->roundKeysKuznechik);
 
 		result = _mm512_xor_si512(result, gammalocks);
 
