@@ -2,7 +2,7 @@
 #include <vector>
 #include <stdint.h>
 #include <string>
-#include "MagmaAVX2.h"
+#include "MagmaAVX2.hpp"
 #include "testData.hpp"
 #include "Kuznechik.h"
 #include "MagmaAVX512.h"
@@ -241,5 +241,7 @@ int main()
     magmaTestSpeed();
     std::cout << "Тестирование алгоритма Кузнечик AVX-2" << std::endl;
     kuznechikTestSpeed();
+    std::cout << "Тестирование алгоритма Кузнечие AVX-512" << std::endl;
+    kuznechik512TestSpeed();
 
 }

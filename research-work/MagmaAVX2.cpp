@@ -1,4 +1,4 @@
-#include "MagmaAVX2.h"
+#include "MagmaAVX2.hpp"
 
 void expandKeys(const key& key, halfVectorMagma(&roundKeys)[8][8])
 {

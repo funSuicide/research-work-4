@@ -2,7 +2,7 @@
 #include <vector>
 #include <stdint.h>
 #include <string>
-#include "MagmaAVX2.h"
+#include "MagmaAVX2.hpp"
 #include "testData.hpp"
 #include "Kuznechik.h"
 #include "MagmaAVX512.h"
