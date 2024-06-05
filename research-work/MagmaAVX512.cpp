@@ -170,7 +170,7 @@ void MagmaAVX512::processDataGamma(std::span<const byteVectorMagma> src, std::sp
 	const int hiHalfsMask = 0x5555; 
 	const int loHalfsMask = 0xAAAA;
 
-	uint32_t diffGamma[8] = {0x04, 0x00, 0x04, 0x00, 0x04, 0x00, 0x04, 0x00};
+	uint32_t diffGamma[16] = {0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00};
 	__m512i diffGammaReg =  _mm512_loadu_si512((const __m512i*)diffGamma);
 
 	__m512i gammaBlocks1 = getStartGammaBlocksAVX512(iV);
@@ -192,11 +192,17 @@ void MagmaAVX512::processDataGamma(std::span<const byteVectorMagma> src, std::sp
 		__m512i tmp = _mm512_shuffle_epi32(hiHalfs, (_MM_PERM_ENUM)blockMask);
 		__m512i tmp2 = _mm512_shuffle_epi32(loHalfs, (_MM_PERM_ENUM)blockMask);
 
-		blocks1 = _mm512_mask_blend_epi32(loHalfsMask, loHalfs, tmp);
-		blocks2 = _mm512_mask_blend_epi32(loHalfsMask, tmp2, hiHalfs);
+		tmp = _mm512_mask_blend_epi32(loHalfsMask, loHalfs, tmp);
+		tmp2 = _mm512_mask_blend_epi32(loHalfsMask, tmp2, hiHalfs);
+
+        blocks1 = _mm512_xor_si512(blocks1, tmp);
+		blocks2 = _mm512_xor_si512(blocks2, tmp2);
 
 		_mm512_storeu_epi32((__m512i*)(dest.data() + b), blocks1);
 		_mm512_storeu_epi32((__m512i*)(dest.data() + b + 8), blocks2);
+
+        gammaBlocks1 = _mm512_add_epi32(gammaBlocks1, diffGammaReg);
+		gammaBlocks2 = _mm512_add_epi32(gammaBlocks2, diffGammaReg);
 	}
 }
 
