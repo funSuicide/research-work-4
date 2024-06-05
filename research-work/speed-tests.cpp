@@ -222,7 +222,7 @@ void magma512TestSpeed()
 		std::vector<byteVectorMagma> b(GIGABYTE / 8);
 		std::span<byteVectorMagma, GIGABYTE / 8> dest(b);
 		auto begin = std::chrono::steady_clock::now();
-		M.processData(tmpMagma, dest, 1, reg);
+		M.processData(tmpMagma, dest, 1);
 		auto end = std::chrono::steady_clock::now();
 		auto time = std::chrono::duration_cast<duration_t>(end - begin);
 		times2.push_back(time.count());
