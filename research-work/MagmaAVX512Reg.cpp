@@ -3,22 +3,22 @@
 #include "table4X256.hpp"
 #include "table2X65536.hpp"
 
-register __m512i r1 asm ("zmm0");
-register __m512i r2 asm ("zmm1");
-register __m512i r3 asm ("zmm2");
-register __m512i r4 asm ("zmm3");
-register __m512i r5 asm ("zmm4");
-register __m512i r6 asm ("zmm5");
-register __m512i r7 asm ("zmm6");
-register __m512i r8 asm ("zmm7");
-register __m512i r9 asm ("zmm8");
-register __m512i r10 asm ("zmm9");
-register __m512i r11 asm ("zmm10");
-register __m512i r12 asm ("zmm11");
-register __m512i r13 asm ("zmm12");
-register __m512i r14 asm ("zmm13");
-register __m512i r15 asm ("zmm14");
-register __m512i r16 asm ("zmm15");
+register __m512i r1 asm ("zmm16");
+register __m512i r2 asm ("zmm17");
+register __m512i r3 asm ("zmm18");
+register __m512i r4 asm ("zmm19");
+register __m512i r5 asm ("zmm20");
+register __m512i r6 asm ("zmm21");
+register __m512i r7 asm ("zmm22");
+register __m512i r8 asm ("zmm23");
+register __m512i r9 asm ("zmm24");
+register __m512i r10 asm ("zmm25");
+register __m512i r11 asm ("zmm26");
+register __m512i r12 asm ("zmm27");
+register __m512i r13 asm ("zmm28");
+register __m512i r14 asm ("zmm29");
+register __m512i r15 asm ("zmm30");
+register __m512i r16 asm ("zmm31");
 
 static inline __m512i invBytesAVX512Reg(__m512i data)
 {
