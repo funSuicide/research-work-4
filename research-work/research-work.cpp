@@ -24,12 +24,12 @@ bool checkFile(const std::string& path)
 }
 
 template <typename alg, typename typeVector>
-void fileOperation(const std::string& inputPath, const std::string& outputPath, Mode mode, uint64_t iV, const Encryptor<alg, typeVector>& E)
+void fileOperation(const std::string& inputPath, const std::string& outputPath, Mode mode, uint64_t iV, const Encryptor<alg, typeVector>& E, Algorithm a)
 {
 	if (mode == ENCRYPT)
 	{
 		auto begin = std::chrono::steady_clock::now();
-		E.encrypt(inputPath, outputPath, iV);
+		E.encrypt(inputPath, outputPath, iV, a);
 		auto end = std::chrono::steady_clock::now();
 		auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 		std::cout << "Общее время шифрования: " << time.count() << " ms" << std::endl;
@@ -37,7 +37,7 @@ void fileOperation(const std::string& inputPath, const std::string& outputPath, 
 	else 
 	{
 		auto begin = std::chrono::steady_clock::now();
-		E.decrypt(inputPath, outputPath, iV);
+		E.decrypt(inputPath, outputPath, iV, a);
 		auto end = std::chrono::steady_clock::now();
 		auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
 		std::cout << "Общее время шифрования: " << time.count() << " ms" << std::endl;
@@ -144,31 +144,31 @@ int main(int argc, char* argv[]) {
 	case MAGMA_AVX2:
 	{
 		Encryptor<MagmaAVX2, byteVectorMagma> MAVX2(key);
-		fileOperation(inputPath, outputPath, mode, iV, MAVX2);
+		fileOperation(inputPath, outputPath, mode, iV, MAVX2, alg);
 		break;
 	}
 	case KUZNECHIK_AVX2:
 	{
 		Encryptor<Kuznechik, byteVectorKuznechik> KAVX2(key);
-		fileOperation(inputPath, outputPath, mode, iV, KAVX2);
+		fileOperation(inputPath, outputPath, mode, iV, KAVX2, alg);
 		break;
 	}
 	case KUZNECHIK_AVX512: 
 	{
 		Encryptor<KuznechikAVX512, byteVectorKuznechik> KAVX512(key);
-		fileOperation(inputPath, outputPath, mode, iV, KAVX512);
+		fileOperation(inputPath, outputPath, mode, iV, KAVX512, alg);
 		break;
 	}
 	case MAGMA_AVX512:
 	{
 		Encryptor<MagmaAVX512, byteVectorMagma> MAVX512(key);
-		fileOperation(inputPath, outputPath, mode, iV, MAVX512);
+		fileOperation(inputPath, outputPath, mode, iV, MAVX512, alg);
 		break;
 	}
 	case MAGMA_AVX512_REG:
 	{
 		Encryptor<MagmaAVX512Reg, byteVectorMagma> MAVX512(key);
-		fileOperation(inputPath, outputPath, mode, iV, MAVX512);
+		fileOperation(inputPath, outputPath, mode, iV, MAVX512, alg);
 		break;
 	}
 	default:
