@@ -23,19 +23,6 @@ bool checkFile(const std::string& path)
 	return std::filesystem::exists(path);
 }
 
-enum Mode {
-	ENCRYPT,
-	DECRYPT,
-};
-
-enum Algorithm {
-	KUZNECHIK_AVX2,
-	KUZNECHIK_AVX512,
-	MAGMA_AVX2,
-	MAGMA_AVX512,
-	MAGMA_AVX512_REG,
-};
-
 template <typename alg, typename typeVector>
 void fileOperation(const std::string& inputPath, const std::string& outputPath, Mode mode, uint32_t iV, const Encryptor<alg, typeVector>& E)
 {
