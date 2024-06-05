@@ -297,5 +297,8 @@ int main()
     kuznechikTestSpeed();
     std::cout << "Тестирование алгоритма Кузнечие AVX-512" << std::endl;
     kuznechik512TestSpeed();
-
+	std::cout << "Тестирование алгоритма Магма AVX-512 (таблица в памяти)" << std::endl;
+    magma512TestSpeed();
+	std::cout << "Тестирование алгоритма Магма AVX-512 (таблица в регистрах)" << std::endl;
+    magma512RegTestSpeed();
 }
