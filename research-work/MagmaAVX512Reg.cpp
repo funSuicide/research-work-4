@@ -3,6 +3,23 @@
 #include "table4X256.hpp"
 #include "table2X65536.hpp"
 
+register __m512i r1 asm ("zmm0") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0]));
+register __m512i r2 asm ("zmm1") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0])+1);
+register __m512i r3 asm ("zmm2") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0])+2);
+register __m512i r4 asm ("zmm3") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0])+3);
+register __m512i r5 asm ("zmm4") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1]));
+register __m512i r6 asm ("zmm5") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1])+1);
+register __m512i r7 asm ("zmm6") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1])+2);
+register __m512i r8 asm ("zmm7") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1])+3);
+register __m512i r9 asm ("zmm8") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2]));
+register __m512i r10 asm ("zmm9") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2])+1);
+register __m512i r11 asm ("zmm10") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2])+2);
+register __m512i r12 asm ("zmm11") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2])+3);
+register __m512i r13 asm ("zmm12") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3]));
+register __m512i r14 asm ("zmm13") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3])+1);
+register __m512i r15 asm ("zmm14") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3])+2);
+register __m512i r16 asm ("zmm15") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3])+3);
+
 static inline __m512i invBytesAVX512Reg(__m512i data)
 {
 	uint32_t mask[] = { 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F, 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F, 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F, 0x0010203, 0x04050607, 0x08090A0B, 0x0C0D0E0F };
@@ -54,13 +71,13 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	__mmask64 currentMask = _mm512_cmplt_epu8_mask(tmp, currentIndexes);
 	__mmask64 mainMask = currentMask;
 
-	__m512i reg1 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0]));
-	__m512i reg2 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0]) + 1);
-	__m512i reg3 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0]) + 2);
-	__m512i reg4 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0]) + 3);
+	//__m512i reg1 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0]));
+	//__m512i reg2 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0]) + 1);
+	//__m512i reg3 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0]) + 2);
+	//__m512i reg4 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0]) + 3);
 
 	__m512i tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(0));
-	__m512i tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg1);
+	__m512i tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r1);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 	
@@ -71,7 +88,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(0));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg1);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r1);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -82,7 +99,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(64));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg2);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r2);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -93,7 +110,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(64));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg2);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r2);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -104,7 +121,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(128));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg3);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r3);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -115,7 +132,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(128));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg3);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r3);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -126,7 +143,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(192));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg4);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r4);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -137,7 +154,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(192));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg4);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r4);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 	tmp = _mm512_and_epi32(_mm512_set1_epi32(maskByte4), tmpResult);
@@ -155,13 +172,13 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	
 	tmp = tmp;
 
-	reg1 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1]));
-	reg2 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1]) + 1);
-	reg3 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1]) + 2);
-	reg4 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1]) + 3);
+	//reg1 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1]));
+	//reg2 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1]) + 1);
+	//reg3 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1]) + 2);
+	//reg4 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1]) + 3);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(0));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg1);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r4);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -172,7 +189,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(0));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg1);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r4);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -183,7 +200,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(64));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg2);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r5);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -194,7 +211,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(64));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg2);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r5);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -205,7 +222,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(128));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg3);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r6);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -216,7 +233,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(128));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg3);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r6);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -227,7 +244,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(192));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg4);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r7);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -238,7 +255,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(192));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg4);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r7);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 	tmp = _mm512_and_epi32(_mm512_set1_epi32(maskByte3), tmpResult);
@@ -255,13 +272,13 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 
 	tmp = tmp;
 
-	reg1 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2]));
-	reg2 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2]) + 1);
-	reg3 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2]) + 2);
-	reg4 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2]) + 3);
+	//reg1 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2]));
+	//reg2 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2]) + 1);
+	//reg3 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2]) + 2);
+	//reg4 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2]) + 3);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(0));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg1);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r8);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -272,7 +289,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(0));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg1);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r8);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -283,7 +300,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(64));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg2);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r9);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -294,7 +311,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(64));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg2);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r9);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -305,7 +322,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(128));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg3);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r10);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -316,7 +333,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(128));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg3);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r10);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -327,7 +344,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(192));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg4);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r11);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -338,7 +355,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(192));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg4);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r11);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 	tmp = _mm512_and_epi32(_mm512_set1_epi32(maskByte2), tmpResult);
@@ -355,13 +372,13 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 
 	tmp = tmp;
 
-	reg1 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3]));
-	reg2 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3]) + 1);
-	reg3 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3]) + 2);
-	reg4 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3]) + 3);
+	//reg1 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3]));
+	//reg2 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3]) + 1);
+	//reg3 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3]) + 2);
+	//reg4 = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3]) + 3);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(0));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg1);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r12);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -372,7 +389,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(0));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg1);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r12);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -383,7 +400,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(64));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg2);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r13);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -394,7 +411,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(64));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg2);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r13);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -405,7 +422,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(128));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg3);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r14);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -416,7 +433,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(128));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg3);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r14);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -427,7 +444,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(192));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg4);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r15);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 
@@ -438,7 +455,7 @@ static inline __m512i tTransformInRegistersAVX512(const __m512i data)
 	mainMask = _kxor_mask64(currentMask, mainMask);
 
 	tmpD = _mm512_sub_epi8(tmp, _mm512_set1_epi8(192));
-	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, reg4);
+	tmp2 = _mm512_maskz_permutexvar_epi8(currentMask, tmpD, r15);
 	tmpResult = _mm512_xor_epi32(tmpResult, tmp2);
 
 	tmp = _mm512_and_epi32(_mm512_set1_epi32(maskByte1), tmpResult);
