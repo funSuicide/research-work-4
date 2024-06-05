@@ -106,7 +106,7 @@ byteVectorKuznechik transformationFAVX512(const byteVectorKuznechik src, const b
 }
 
 
-std::array <byteVectorKuznechik, 32> getconstTableAVX512KuzAVX512() {
+std::array <byteVectorKuznechik, 32> getconstTableAVX512() {
 	std::array <byteVectorKuznechik, 32> constTableAVX512;
 	byteVectorKuznechik numberIter = { halfVectorKuznechik(0), halfVectorKuznechik(0)};
 	numberIter.bytes[0] += 0x01;
