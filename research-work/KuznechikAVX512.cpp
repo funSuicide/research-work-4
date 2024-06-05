@@ -144,9 +144,9 @@ std::array<std::array<byteVectorKuznechik, 256>, 16> getStartTableAVX512() {
 
 std::array<std::array<byteVectorKuznechik, 256>, 16> startByteTAVX512 = getStartTableAVX512();
 
-std::array <byteVectorKuznechik, 32> constTableAVX512 = getconstTableAVX512KuzAVX512();
+std::array <byteVectorKuznechik, 32> constTableAVX512 = getconstTableAVX512();
 
-void getRoundKeys(const key& mainKey, byteVectorKuznechik(&roundKeysKuznechik)[10][2]) {
+void getRoundKeysAVX512(const key& mainKey, byteVectorKuznechik(&roundKeysKuznechik)[10][2]) {
 	uint8_t lo[16];
 	uint8_t hi[16];
 	size_t numberKey = 0;
@@ -253,6 +253,6 @@ static inline __m512i getStartGammaBlocksKuznechikAVX512(uint64_t iV)
 
 
 KuznechikAVX512::KuznechikAVX512(const key& mainKey) {
-	getRoundKeys(mainKey, this->roundKeysKuznechik);
-	getconstTableAVX512KuzAVX512();
+	getRoundKeysAVX512(mainKey, this->roundKeysKuznechik);
+	getconstTableAVX512();
 }
