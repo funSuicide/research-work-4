@@ -24,7 +24,7 @@ bool checkFile(const std::string& path)
 }
 
 template <typename alg, typename typeVector>
-void fileOperation(const std::string& inputPath, const std::string& outputPath, Mode mode, uint32_t iV, const Encryptor<alg, typeVector>& E)
+void fileOperation(const std::string& inputPath, const std::string& outputPath, Mode mode, uint64_t iV, const Encryptor<alg, typeVector>& E)
 {
 	if (mode == ENCRYPT)
 	{
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
 	key key;
 	std::string inputPath;
 	std::string outputPath;
-	uint32_t iV;
+	uint64_t iV;
 
 	if (mode == 1 || mode == 0)
 	{
