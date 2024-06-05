@@ -8,6 +8,8 @@
 #include "Structures.h"
 
 class Kuznechik {
+private:
+    byteVectorKuznechik roundKeysKuznechik[10][2];
 public:
     Kuznechik(const key& key);
     void processData(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en)  const;

@@ -38,8 +38,6 @@ static constexpr uint8_t sTable[256] = {
 
 static constexpr uint8_t lVector[16] = { 1, 148, 32, 133, 16, 194, 192, 1, 251, 1, 192, 194, 16, 133, 32, 148 };
 
-byteVectorKuznechik roundKeysKuznechik[10][2];
-
 uint8_t multiplicationGalua(uint8_t first, uint8_t second) {
 	uint8_t result = 0;
 	uint8_t hiBit;
@@ -150,7 +148,7 @@ std::array<std::array<byteVectorKuznechik, 256>, 16> startByteT = getStartTable(
 
 std::array <byteVectorKuznechik, 32> constTable = getConstTableKuz();
 
-void getRoundKeys(const key& mainKey) {
+void getRoundKeys(const key& mainKey, byteVectorKuznechik(&roundKeysKuznechik)[10][2]) {
 	uint8_t lo[16];
 	uint8_t hi[16];
 	size_t numberKey = 0;
@@ -181,7 +179,7 @@ void getRoundKeys(const key& mainKey) {
 	}
 }
 
-__m256i encryptBlockAVX2(__m256i blocks) {
+__m256i encryptBlockAVX2(__m256i blocks, const byteVectorKuznechik(&roundKeysKuznechik)[10][2]) {
 	__m256i result = blocks;
 	byteVectorKuznechik t[2];
 	for (size_t i = 0; i < 9; ++i) {
@@ -208,7 +206,7 @@ __m256i encryptBlockAVX2(__m256i blocks) {
 }
 
 
-__m512i encryptBlockAVX512(__m512i blocks)
+__m512i encryptBlockAVX512(__m512i blocks, const byteVectorKuznechik(&roundKeysKuznechik)[10][2])
 {
 	__m512i result = blocks;
 	byteVectorKuznechik t[4];
@@ -247,7 +245,7 @@ void Kuznechik::processData(std::span<const byteVectorKuznechik> src, std::span<
 
 		if (en)
 		{
-			result = encryptBlockAVX2(blocks);
+			result = encryptBlockAVX2(blocks, this->roundKeysKuznechik);
 		}
 
 		_mm256_storeu_si256((__m256i*)(dest.data() + b), result);
@@ -275,7 +273,7 @@ static inline __m256i getStartGammaBlocksKuznechik(uint64_t iV)
 
 		__m256i result = _mm256_setzero_si256();
 
-		result = encryptBlockAVX2(gammalocks);
+		result = encryptBlockAVX2(gammalocks, this->roundKeysKuznechik);
 
 		result = _mm256_xor_si256(result, blocks);
 
@@ -287,6 +285,6 @@ static inline __m256i getStartGammaBlocksKuznechik(uint64_t iV)
 
 
 Kuznechik::Kuznechik(const key& mainKey) {
-	getRoundKeys(mainKey);
+	getRoundKeys(mainKey, this->roundKeysKuznechik);
 	getConstTableKuz();
 }
