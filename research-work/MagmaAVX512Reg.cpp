@@ -3,22 +3,22 @@
 #include "table4X256.hpp"
 #include "table2X65536.hpp"
 
-register __m512i r1 asm ("zmm0") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0]));
-register __m512i r2 asm ("zmm1") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0])+1);
-register __m512i r3 asm ("zmm2") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0])+2);
-register __m512i r4 asm ("zmm3") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[0])+3);
-register __m512i r5 asm ("zmm4") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1]));
-register __m512i r6 asm ("zmm5") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1])+1);
-register __m512i r7 asm ("zmm6") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1])+2);
-register __m512i r8 asm ("zmm7") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[1])+3);
-register __m512i r9 asm ("zmm8") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2]));
-register __m512i r10 asm ("zmm9") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2])+1);
-register __m512i r11 asm ("zmm10") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2])+2);
-register __m512i r12 asm ("zmm11") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[2])+3);
-register __m512i r13 asm ("zmm12") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3]));
-register __m512i r14 asm ("zmm13") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3])+1);
-register __m512i r15 asm ("zmm14") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3])+2);
-register __m512i r16 asm ("zmm15") = _mm512_loadu_epi32((const __m512i*)(sTable4x256[3])+3);
+register __m512i r1 asm ("zmm0");
+register __m512i r2 asm ("zmm1");
+register __m512i r3 asm ("zmm2");
+register __m512i r4 asm ("zmm3");
+register __m512i r5 asm ("zmm4");
+register __m512i r6 asm ("zmm5");
+register __m512i r7 asm ("zmm6");
+register __m512i r8 asm ("zmm7");
+register __m512i r9 asm ("zmm8");
+register __m512i r10 asm ("zmm9");
+register __m512i r11 asm ("zmm10");
+register __m512i r12 asm ("zmm11");
+register __m512i r13 asm ("zmm12");
+register __m512i r14 asm ("zmm13");
+register __m512i r15 asm ("zmm14");
+register __m512i r16 asm ("zmm15");
 
 static inline __m512i invBytesAVX512Reg(__m512i data)
 {
@@ -524,6 +524,24 @@ void MagmaAVX512Reg::processData(std::span<const byteVectorMagma> src, std::span
 	const int blockMask = 0xB1;
 	const int hiHalfsMask = 0x5555; 
 	const int loHalfsMask = 0xAAAA;
+
+	r1 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[0]));
+	r2 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[0])+1);
+	r3 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[0])+2);
+	r4 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[0])+3);
+	r5 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[1]));
+	r6 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[1])+1);
+	r7 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[1])+2);
+	r8 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[1])+3);
+	r9 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[2]));
+	r10 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[2])+1);
+	r11 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[2])+2);
+	r12 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[2])+3);
+	r13 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[3]));
+	r14 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[3])+1);
+	r15 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[3])+2);
+	r16 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[3])+3);
+
 	for (size_t b = 0; b < src.size(); b += 16)
 	{
 		__m512i blocks1 = _mm512_loadu_epi32((const __m512i*)(src.data() + b));
@@ -559,6 +577,23 @@ void MagmaAVX512Reg::processDataGamma(std::span<const byteVectorMagma> src, std:
     const int blockMask = 0xB1;
 	const int hiHalfsMask = 0x5555; 
 	const int loHalfsMask = 0xAAAA;
+
+	r1 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[0]));
+	r2 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[0])+1);
+	r3 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[0])+2);
+	r4 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[0])+3);
+	r5 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[1]));
+	r6 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[1])+1);
+	r7 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[1])+2);
+	r8 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[1])+3);
+	r9 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[2]));
+	r10 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[2])+1);
+	r11 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[2])+2);
+	r12 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[2])+3);
+	r13 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[3]));
+	r14 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[3])+1);
+	r15 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[3])+2);
+	r16 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[3])+3);
 
     uint32_t diffGamma[16] = {0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00};
 	__m512i diffGammaReg =  _mm512_loadu_si512((const __m512i*)diffGamma);
