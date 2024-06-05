@@ -5,7 +5,7 @@
 #include "MagmaAVX2.hpp"
 #include "testData.hpp"
 #include "Kuznechik.h"
-#include "MagmaAVX512.h"
+#include "MagmaAVX512.hpp"
 #include "KuznechikAVX512.hpp"
 #include <chrono>
 #include <string_view>

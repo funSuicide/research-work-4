@@ -3,8 +3,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <algorithm>
-#include <iostream>
-#include <vector>
 #include <immintrin.h>
 #include <span>
 #include "Structures.h"
@@ -14,6 +12,5 @@ public:
     Kuznechik(const key& key);
     void processData(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en)  const;
     void processDataGamma(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, uint64_t iV) const;
-    void processDataAVX512(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en)  const;
 };
 

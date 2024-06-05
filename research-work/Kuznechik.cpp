@@ -254,17 +254,6 @@ void Kuznechik::processData(std::span<const byteVectorKuznechik> src, std::span<
 	}
 }
 
-
-void Kuznechik::processDataAVX512(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en) const
-{
-	for (size_t b = 0; b < src.size(); b += 4)
-	{
-		__m512i blocks = _mm512_loadu_si512((const __m512i*)(src.data() + b));
-		__m512i result = encryptBlockAVX512(blocks);
-		_mm512_storeu_si512((__m512i*)(dest.data() + b), result);
-	}
-}
-
 static inline __m256i getStartGammaBlocksKuznechik(uint64_t iV)
 {
 	uint64_t tmp[4];

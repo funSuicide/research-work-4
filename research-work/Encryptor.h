@@ -17,13 +17,9 @@ class Encryptor {
 public:
 	Encryptor(const key& key) : cryptoAlgorithm(key) {};
 
-
-	
 	size_t paddingPKCS(std::vector<typeVector>& src, size_t gCount) const {
 		size_t blockIndex = gCount / sizeof(typeVector);
 		size_t shiftIndex = gCount % sizeof(typeVector);
-
-		//if (shiftIndex == 0) ++blockIndex;
 
 		for (size_t i = shiftIndex; i < sizeof(typeVector); ++i) {
 			src[blockIndex].bytes[i] = sizeof(typeVector) - shiftIndex;
