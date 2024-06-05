@@ -15,6 +15,7 @@
 #include <fstream>
 #include "Encryptor.h"
 #include <filesystem>
+#include "MagmaAVX512Reg.hpp"
 #define GIGABYTE 1024*1024*1024
 
 using duration_t = std::chrono::duration<float>;
@@ -182,7 +183,7 @@ void kuznechik512TestSpeed()
 	std::cout << "----------------------------------------------" << std::endl;
 }
 
-void magma512TestSpeed(bool reg)
+void magma512TestSpeed()
 {
 	byteVectorMagma testBlockMagma(testDataBytesMagma);
 	key testKeyMagma(testKeyBytesMagma);
@@ -199,7 +200,7 @@ void magma512TestSpeed(bool reg)
 	std::cout << "Тестовый ключ: " << printVector(testKeyMagma) << std::endl;
 	std::cout << "Ожидаемый результат: " << printVector(expectedBlockMagma) << std::endl;
 
-	MAVX512.processData(testSrcMagma512, testDestMagma512, 1, reg);
+	MAVX512.processData(testSrcMagma512, testDestMagma512, 1);
 
 	std::cout << "Реальный результат: " << printVector(testDestMagma512[0]) << std::endl;
 
@@ -222,6 +223,59 @@ void magma512TestSpeed(bool reg)
 		std::span<byteVectorMagma, GIGABYTE / 8> dest(b);
 		auto begin = std::chrono::steady_clock::now();
 		M.processData(tmpMagma, dest, 1, reg);
+		auto end = std::chrono::steady_clock::now();
+		auto time = std::chrono::duration_cast<duration_t>(end - begin);
+		times2.push_back(time.count());
+		std::cout << "Обработано: " << j+1 << " ГБ" << ": " << time.count() << std::endl;
+	}
+
+	double meanM2 = std::accumulate(times2.begin(), times2.end(), 0.0) / times2.size();
+	std::cout << meanM2 << std::endl;
+	std::cout << "Среднее значение скорости алгоритма (AVX-512): " << 1 / meanM2 << "ГБ/с" << std::endl;
+
+	std::cout << "----------------------------------------------" << std::endl;
+}
+
+void magma512RegTestSpeed()
+{
+	byteVectorMagma testBlockMagma(testDataBytesMagma);
+	key testKeyMagma(testKeyBytesMagma);
+
+	MagmaAVX512Reg MAVX512Reg(testKeyMagma);
+
+	byteVectorMagma expectedBlockMagma(expectedBlockBytesMagma);
+
+	std::vector<byteVectorMagma> testSrcMagma512 = { testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma, testBlockMagma };
+	std::vector<byteVectorMagma> testDestMagma512(16);
+
+
+	std::cout << "Тестовые данные: " << printVector(testBlockMagma) << std::endl;
+	std::cout << "Тестовый ключ: " << printVector(testKeyMagma) << std::endl;
+	std::cout << "Ожидаемый результат: " << printVector(expectedBlockMagma) << std::endl;
+
+	MAVX512Reg.processData(testSrcMagma512, testDestMagma512, 1);
+
+	std::cout << "Реальный результат: " << printVector(testDestMagma512[0]) << std::endl;
+
+	std::cout << "----------------------------------------------" << std::endl;
+
+	std::cout << "Запуск теста скорости..." << std::endl;
+	
+	std::vector<float> times2;
+	std::vector<byteVectorMagma> vectorForMagma;
+	generateTestVector(vectorForMagma);
+
+	uint8_t c[32] = "asdafasdasdasfdasdasdakfksakfsa";
+	key S(c);
+	MagmaAVX512Reg M(S);
+
+	std::span<byteVectorMagma, GIGABYTE / 8> tmpMagma(vectorForMagma);
+
+	for (int j = 0; j < 5; ++j) {
+		std::vector<byteVectorMagma> b(GIGABYTE / 8);
+		std::span<byteVectorMagma, GIGABYTE / 8> dest(b);
+		auto begin = std::chrono::steady_clock::now();
+		M.processData(tmpMagma, dest, 1);
 		auto end = std::chrono::steady_clock::now();
 		auto time = std::chrono::duration_cast<duration_t>(end - begin);
 		times2.push_back(time.count());

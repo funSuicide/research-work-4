@@ -7,6 +7,7 @@
 #include "Kuznechik.h"
 #include "MagmaAVX512.hpp"
 #include "KuznechikAVX512.hpp"
+#include "MagmaAVX512Reg.hpp"
 #include <chrono>
 #include <string_view>
 #include <algorithm>
@@ -173,14 +174,14 @@ int main(int argc, char* argv[]) {
 	}
 	case MAGMA_AVX512:
 	{
-		/*
 		Encryptor<MagmaAVX512, byteVectorMagma> MAVX512(key);
 		fileOperation(inputPath, outputPath, mode, iV, MAVX512);
-		break;*/
+		break;
 	}
 	case MAGMA_AVX512_REG:
 	{
-		std::cout << "ждем" << std::endl;
+		Encryptor<MagmaAVX512Reg, byteVectorMagma> MAVX512(key);
+		fileOperation(inputPath, outputPath, mode, iV, MAVX512);
 		break;
 	}
 	default:
