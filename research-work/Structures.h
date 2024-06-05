@@ -43,7 +43,6 @@ union byteVectorMagma {
     {
         uint16_t l0, l1, l2, l3;
     } quartersData;
-    //halfVectorMagma halfs[2];
     uint8_t bytes[8];
     uint64_t ull;
     byteVectorMagma() = default;
@@ -51,4 +50,17 @@ union byteVectorMagma {
     byteVectorMagma(uint16_t l0, uint16_t l1, uint16_t l2, uint16_t l3);
     explicit byteVectorMagma(uint8_t* data); // +
     byteVectorMagma(uint8_t);
+};
+
+enum Mode {
+	ENCRYPT,
+	DECRYPT,
+};
+
+enum Algorithm {
+	KUZNECHIK_AVX2,
+	KUZNECHIK_AVX512,
+	MAGMA_AVX2,
+	MAGMA_AVX512,
+	MAGMA_AVX512_REG,
 };

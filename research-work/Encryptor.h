@@ -10,12 +10,50 @@
 
 #define MEGABYTE 1024*1024
 
+uint64_t getNewIv(Algorithm alg, uint64_t old)
+{
+	uint64_t iV = old;
+	switch(alg)
+	{
+	case MAGMA_AVX2: 
+		{
+			iV+=0x4000;
+			break;
+		}
+	case MAGMA_AVX512:
+		{
+			iV+=0x2000;
+			break;
+		}
+	case MAGMA_AVX512_REG: 
+		{
+			iV+=0x2000;
+			break;
+		}
+	case KUZNECHIK_AVX2:
+		{
+			iV+=0x8000;
+			break;
+		}
+	case KUZNECHIK_AVX512:
+		{
+			iV+=0x4000;
+			break;
+		}
+	default:
+		{
+			break;
+		}
+	}
+	return iV;
+
+}
+
 template <typename T, typename typeVector>
 class Encryptor {
+private:
 	T cryptoAlgorithm;
 	static constexpr size_t BLOCK_BUFFER_SIZE = MEGABYTE / sizeof(typeVector);
-public:
-	Encryptor(const key& key) : cryptoAlgorithm(key) {};
 
 	size_t paddingPKCS(std::vector<typeVector>& src, size_t gCount) const {
 		size_t blockIndex = gCount / sizeof(typeVector);
@@ -26,10 +64,11 @@ public:
 		}
 		return blockIndex;
 	}
+public:
+	Encryptor(const key& key) : cryptoAlgorithm(key) {};
 
-	
-
-	void encrypt(const std::string& pathOne, const std::string& pathTwo, uint64_t iV) const {
+	void encrypt(const std::string& pathOne, const std::string& pathTwo, uint64_t parIV, Algorithm alg) const {
+		uint64_t iV = parIV;
 		std::ifstream in(pathOne, std::ios::binary);
 		in.seekg(0, std::ios::end);
 		size_t sizeFile = in.tellg();
@@ -51,10 +90,14 @@ public:
 				size_t newSize = paddingPKCS(buffer, readSize);
 
 				cryptoAlgorithm.processDataGamma(buffer, result, iV);
+				
+				
+
 				out.write((const char*)&result[0], (newSize + 1) * sizeof(typeVector));
 			}
 			else {
 				cryptoAlgorithm.processDataGamma(buffer, result, iV);
+				iV = getNewIv(alg, iV);
 				out.write((const char*)&result[0], BLOCK_BUFFER_SIZE * sizeof(typeVector));
 			}
 		}
@@ -62,8 +105,9 @@ public:
 		out.close();
 	}
 
-	void decrypt(const std::string& pathOne, const std::string& pathTwo, uint64_t iV) const {
+	void decrypt(const std::string& pathOne, const std::string& pathTwo, uint64_t parIV, Algorithm alg) const {
 		std::ifstream in(pathOne, std::ios::binary);
+		uint64_t iV = parIV;
 		in.seekg(0, std::ios::end);
 		size_t sizeFile = in.tellg();
 		size_t countMegabytes = sizeFile / MEGABYTE;
@@ -92,7 +136,7 @@ public:
 			else
 			{
 				cryptoAlgorithm.processDataGamma(buffer, result, iV);
-
+				iV = getNewIv(alg, iV);
 				out.write((const char*)&result[0], BLOCK_BUFFER_SIZE * sizeof(typeVector));
 			}
 		}
