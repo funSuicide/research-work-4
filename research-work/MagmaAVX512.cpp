@@ -181,10 +181,10 @@ void MagmaAVX512::processDataGamma(std::span<const byteVectorMagma> src, std::sp
 		__m512i blocks1 = _mm512_loadu_epi32((const __m512i*)(src.data() + b));
 		__m512i blocks2 = _mm512_loadu_epi32((const __m512i*)(src.data() + b + 8));
 
-		__m512i blocksTmp = _mm512_shuffle_epi32(blocks1, (_MM_PERM_ENUM)blockMask);
+		__m512i blocksTmp = _mm512_shuffle_epi32(gammaBlocks1, (_MM_PERM_ENUM)blockMask);
 
-		__m512i loHalfs = _mm512_mask_blend_epi32(loHalfsMask, blocks1, blocksTmp);
-		__m512i hiHalfs = _mm512_mask_blend_epi32(hiHalfsMask, blocks2, blocksTmp);
+		__m512i loHalfs = _mm512_mask_blend_epi32(loHalfsMask, gammaBlocks1, blocksTmp);
+		__m512i hiHalfs = _mm512_mask_blend_epi32(hiHalfsMask, gammaBlocks2, blocksTmp);
 
 		
 		encryptEightBlocks(loHalfs, hiHalfs, this->roundKeys);
