@@ -7,8 +7,8 @@ else()
 endif()
 
 
-add_executable(${PROJECT_NAME} research-work.cpp MagmaAVX2.cpp Kuznechik.cpp KuznechikAVX512.cpp Structures.cpp MagmaAVX512.cpp)	
-add_executable(speedTests speed-tests.cpp MagmaAVX2.cpp Kuznechik.cpp KuznechikAVX512.cpp Structures.cpp MagmaAVX512.cpp)
+add_executable(${PROJECT_NAME} research-work.cpp MagmaAVX2.cpp Kuznechik.cpp KuznechikAVX512.cpp Structures.cpp MagmaAVX512.cpp MagmaAVX512Reg.cpp)	
+add_executable(speedTests speed-tests.cpp MagmaAVX2.cpp Kuznechik.cpp KuznechikAVX512.cpp Structures.cpp MagmaAVX512.cpp MagmaAVX512Reg.cpp)
 
 
 
