@@ -15,6 +15,6 @@ private:
 public:
     KuznechikAVX512(const key& key);
     void processDataGamma(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, uint64_t iV) const;
-    void processData(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en)  const;
+    void processData(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en, int count)  const;
 };
 
