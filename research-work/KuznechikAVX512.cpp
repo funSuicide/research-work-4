@@ -1,7 +1,6 @@
 #include "KuznechikAVX512.hpp"
 #include <array>
 #include <algorithm>
-#include "omp.h"
 
 static constexpr uint8_t sTable[256] = {
 	0xFC, 0xEE, 0xDD, 0x11, 0xCF, 0x6E, 0x31, 0x16,
@@ -207,9 +206,8 @@ static inline __m512i encryptBlockAVX512(__m512i blocks, const byteVectorKuznech
 	return result;
 }
 
-void KuznechikAVX512::processData(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en, int count) const
+void KuznechikAVX512::processData(std::span<const byteVectorKuznechik> src, std::span<byteVectorKuznechik> dest, bool en) const
 {
-	#pragma omp parallel num_threads(count)
 	for (size_t b = 0; b < src.size(); b += 4)
 	{
 		__m512i blocks = _mm512_loadu_si512((const __m512i*)(src.data() + b));

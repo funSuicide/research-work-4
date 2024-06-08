@@ -2,7 +2,6 @@
 #include <iostream>
 #include "table4X256.hpp"
 #include "table2X65536.hpp"
-#include "omp.h"
 
 register __m512i r1 asm ("zmm16");
 register __m512i r2 asm ("zmm17");
@@ -520,7 +519,7 @@ static inline void decryptEightBlocksGAVX512Reg(__m512i& loHalfs, __m512i& hiHal
 }
 
 
-void MagmaAVX512Reg::processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en, int count) const
+void MagmaAVX512Reg::processData(std::span<const byteVectorMagma> src, std::span<byteVectorMagma> dest, bool en) const
 {
 	const int blockMask = 0xB1;
 	const int hiHalfsMask = 0x5555; 
@@ -543,7 +542,6 @@ void MagmaAVX512Reg::processData(std::span<const byteVectorMagma> src, std::span
 	r15 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[3])+2);
 	r16 =  _mm512_loadu_epi32((const __m512i*)(sTable4x256[3])+3);
 
-	#pragma omp parallel num_threads(count)
 	for (size_t b = 0; b < src.size(); b += 16)
 	{
 		__m512i blocks1 = _mm512_loadu_epi32((const __m512i*)(src.data() + b));

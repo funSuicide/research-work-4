@@ -3,7 +3,7 @@ project(mainProject CXX)
 if(MSVC)
 	add_compile_options(/std:c++latest /arch:AVX512)
 else()
-	add_compile_options(-march=native -std=c++2b -fopenmp)
+	add_compile_options(-march=native -std=c++2b)
 endif()
 
 

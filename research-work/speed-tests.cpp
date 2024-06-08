@@ -45,7 +45,7 @@ void generateTestVector(std::vector<typeVector>& dest)
 	}
 }
 
-void magmaTestSpeed(int c)
+void magmaTestSpeed()
 {
 	byteVectorMagma testBlockMagma(testDataBytesMagma);
 	key testKeyMagma(testKeyBytesMagma);
@@ -65,7 +65,7 @@ void magmaTestSpeed(int c)
 	std::cout << "Тестовый ключ: " << printVector(testKeyMagma) << std::endl;
 	std::cout << "Ожидаемый результат: " << printVector(expectedBlockMagma) << std::endl;
 
-	MAVX2.processData(testSrcMagma, testDestMagma, 1, c);
+	MAVX2.processData(testSrcMagma, testDestMagma, 1);
 
 	std::cout << "Реальный результат: " << printVector(testDestMagma[0]) << std::endl;
 
@@ -87,7 +87,7 @@ void magmaTestSpeed(int c)
 		std::vector<byteVectorMagma> b(GIGABYTE / 8);
 		std::span<byteVectorMagma, GIGABYTE / 8> dest(b);
 		auto begin = std::chrono::steady_clock::now();
-		M.processData(tmpMagma, dest, 1, c);
+		M.processData(tmpMagma, dest, 1);
 		auto end = std::chrono::steady_clock::now();
 		auto time = std::chrono::duration_cast<duration_t>(end - begin);
 		times2.push_back(time.count());
@@ -101,7 +101,7 @@ void magmaTestSpeed(int c)
 	std::cout << "----------------------------------------------" << std::endl;
 }
 
-void kuznechikTestSpeed(int c) 
+void kuznechikTestSpeed() 
 {
 	byteVectorKuznechik testBlockKuz(testDataBytesKuz);
 
@@ -117,7 +117,7 @@ void kuznechikTestSpeed(int c)
 	std::cout << "Тестовый ключ: " << printVector(testKeyKuz) << std::endl;
 	std::cout << "Ожидаемый результат: " << printVector(expectedBlockKuz) << std::endl;
 
-	KAVX2.processData(testSrcKuz, testDestKuz, 1, c);
+	KAVX2.processData(testSrcKuz, testDestKuz, 1);
 
 	std::cout << "Реальный результат: " << printVector(testDestKuz[0]) << std::endl;
 
@@ -139,7 +139,7 @@ void kuznechikTestSpeed(int c)
 		std::vector<byteVectorKuznechik> b(GIGABYTE / 16);
 		std::span<byteVectorKuznechik, GIGABYTE / 16> dest(b);
 		auto begin = std::chrono::steady_clock::now();
-		k2.processData(aa2, dest, 1, c);
+		k2.processData(aa2, dest, 1);
 		auto end = std::chrono::steady_clock::now();
 		auto time = std::chrono::duration_cast<duration_t>(end - begin);
 		timesKuz2.push_back(time.count());
@@ -154,7 +154,7 @@ void kuznechikTestSpeed(int c)
 }
 
 
-void kuznechik512TestSpeed(int c)
+void kuznechik512TestSpeed()
 {
 	std::vector<float> timesKuz2;
 
@@ -170,7 +170,7 @@ void kuznechik512TestSpeed(int c)
 		std::vector<byteVectorKuznechik> b(GIGABYTE / 16);
 		std::span<byteVectorKuznechik, GIGABYTE / 16> dest(b);
 		auto begin = std::chrono::steady_clock::now();
-		K512.processData(aa2, dest, 1, c);
+		K512.processData(aa2, dest, 1);
 		auto end = std::chrono::steady_clock::now();
 		auto time = std::chrono::duration_cast<duration_t>(end - begin);
 		timesKuz2.push_back(time.count());
@@ -184,7 +184,7 @@ void kuznechik512TestSpeed(int c)
 	std::cout << "----------------------------------------------" << std::endl;
 }
 
-void magma512TestSpeed(int c)
+void magma512TestSpeed()
 {
 	byteVectorMagma testBlockMagma(testDataBytesMagma);
 	key testKeyMagma(testKeyBytesMagma);
@@ -201,7 +201,7 @@ void magma512TestSpeed(int c)
 	std::cout << "Тестовый ключ: " << printVector(testKeyMagma) << std::endl;
 	std::cout << "Ожидаемый результат: " << printVector(expectedBlockMagma) << std::endl;
 
-	MAVX512.processData(testSrcMagma512, testDestMagma512, 1, c);
+	MAVX512.processData(testSrcMagma512, testDestMagma512, 1);
 
 	std::cout << "Реальный результат: " << printVector(testDestMagma512[0]) << std::endl;
 
@@ -223,7 +223,7 @@ void magma512TestSpeed(int c)
 		std::vector<byteVectorMagma> b(GIGABYTE / 8);
 		std::span<byteVectorMagma, GIGABYTE / 8> dest(b);
 		auto begin = std::chrono::steady_clock::now();
-		M.processData(tmpMagma, dest, 1, c);
+		M.processData(tmpMagma, dest, 1);
 		auto end = std::chrono::steady_clock::now();
 		auto time = std::chrono::duration_cast<duration_t>(end - begin);
 		times2.push_back(time.count());
@@ -237,7 +237,7 @@ void magma512TestSpeed(int c)
 	std::cout << "----------------------------------------------" << std::endl;
 }
 
-void magma512RegTestSpeed(int c)
+void magma512RegTestSpeed()
 {
 	byteVectorMagma testBlockMagma(testDataBytesMagma);
 	key testKeyMagma(testKeyBytesMagma);
@@ -254,7 +254,7 @@ void magma512RegTestSpeed(int c)
 	std::cout << "Тестовый ключ: " << printVector(testKeyMagma) << std::endl;
 	std::cout << "Ожидаемый результат: " << printVector(expectedBlockMagma) << std::endl;
 
-	MAVX512Reg.processData(testSrcMagma512, testDestMagma512, 1, c);
+	MAVX512Reg.processData(testSrcMagma512, testDestMagma512, 1);
 
 	std::cout << "Реальный результат: " << printVector(testDestMagma512[0]) << std::endl;
 
@@ -276,7 +276,7 @@ void magma512RegTestSpeed(int c)
 		std::vector<byteVectorMagma> b(GIGABYTE / 8);
 		std::span<byteVectorMagma, GIGABYTE / 8> dest(b);
 		auto begin = std::chrono::steady_clock::now();
-		M.processData(tmpMagma, dest, 1, c);
+		M.processData(tmpMagma, dest, 1);
 		auto end = std::chrono::steady_clock::now();
 		auto time = std::chrono::duration_cast<duration_t>(end - begin);
 		times2.push_back(time.count());
@@ -293,19 +293,16 @@ void magma512RegTestSpeed(int c)
 int main()
 {
 
-	for (size_t i = 0; i < 16; ++i)
-	{
-		std::cout << i << ":" << std::endl;
 		std::cout << "Тестирование алгоритма Магма AVX-2" << std::endl;
-    	magmaTestSpeed(i);
+    	magmaTestSpeed();
     	std::cout << "Тестирование алгоритма Кузнечик AVX-2" << std::endl;
-    	kuznechikTestSpeed(i);
+    	kuznechikTestSpeed();
     	std::cout << "Тестирование алгоритма Кузнечие AVX-512" << std::endl;
-    	kuznechik512TestSpeed(i);
+    	kuznechik512TestSpeed();
 		std::cout << "Тестирование алгоритма Магма AVX-512 (таблица в памяти)" << std::endl;
-    	magma512TestSpeed(i);
+    	magma512TestSpeed();
 		std::cout << "Тестирование алгоритма Магма AVX-512 (таблица в регистрах)" << std::endl;
-    	magma512RegTestSpeed(i);
-	}
+    	magma512RegTestSpeed();
+
    
 }
